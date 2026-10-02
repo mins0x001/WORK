@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0A1120">
+<meta name="release-date" content="261002">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="업무">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>업무 허브</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  /* 레이아웃: 한 열 — 앱 카드 2장 → 앱 설치 → 안내. 폰 한 화면에 모두 보이도록 */
+  :root{
+    --bg:#0A1120; --panel:#0F182A; --panel-2:#0B1322; --border:#1C2842;
+    --text:#E6ECF5; --text-dim:#8E9AB0; --text-faint:#5F6B82;
+    --glow:#5EEAD4; --amber:#F5A524; --violet:#A78BFA;
+    --f-body:'Noto Sans KR',system-ui,-apple-system,sans-serif;
+    --f-mono:'JetBrains Mono',ui-monospace,monospace;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--f-body);}
+  body{padding-block:calc(18px + env(safe-area-inset-top)) calc(24px + env(safe-area-inset-bottom));padding-inline:16px;}
+  .wrap{max-width:520px;margin:0 auto;display:grid;gap:12px;}
+  header h1{margin:0;font-size:22px;font-weight:900;letter-spacing:-0.3px;}
+  header p{margin:4px 0 0;font-size:12.5px;color:var(--text-dim);}
+  header .ver{font-family:var(--f-mono);color:var(--text-faint);}
+  .app-pill{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:99px;font-size:11.5px;font-weight:700;color:var(--glow);border:1px solid rgba(94,234,212,0.4);}
+  a.dash{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:14px;border-radius:16px;
+    background:var(--panel);border:1px solid var(--border);color:inherit;text-decoration:none;}
+  a.dash:active{transform:scale(0.99);}
+  a.dash:focus-visible,.ins-btn:focus-visible{outline:2px solid var(--glow);outline-offset:2px;}
+  .tk{width:56px;height:56px;border-radius:14px;display:grid;place-items:center;font-family:var(--f-body);font-weight:900;font-size:15px;
+    background:var(--panel-2);border:1.5px solid var(--c);color:var(--c);}
+  .info{min-width:0;}
+  .nm,.st{display:block;}
+  .nm{font-size:16px;font-weight:800;}
+  .nm small{font-family:var(--f-mono);font-size:11.5px;color:var(--text-faint);font-weight:500;margin-left:4px;}
+  .st{font-size:12.5px;color:var(--text-dim);margin-top:3px;line-height:1.5;font-variant-numeric:tabular-nums;}
+  .st b{color:var(--text);font-family:var(--f-mono);font-weight:700;}
+  .go{font-size:20px;color:var(--c);}
+
+  .install{padding:14px;border-radius:16px;background:var(--panel-2);border:1px dashed var(--border);display:grid;gap:10px;}
+  .ins-title{font-size:15px;font-weight:800;}
+  .ins-state{font-size:13px;line-height:1.6;color:var(--text-dim);}
+  .ins-state.warn{color:var(--amber);}
+  .ins-btn{width:100%;min-height:52px;border-radius:12px;border:0;background:linear-gradient(90deg,#2BCDB8,#5EEAD4);color:#04211C;
+    font-weight:900;font-size:15.5px;cursor:pointer;font-family:inherit;}
+  .ins-btn:active{transform:scale(0.98);}
+  .ins-btn.ghost{background:var(--panel);color:var(--text);border:1px solid var(--border);}
+  .ins-steps{display:grid;gap:6px;margin:0;padding:0;list-style:none;counter-reset:st;}
+  .ins-steps[hidden],.app-pill[hidden],.install[hidden]{display:none;}
+  .ins-steps li{counter-increment:st;display:grid;grid-template-columns:22px 1fr;gap:8px;font-size:13px;line-height:1.6;color:var(--text-dim);
+    padding:9px 10px;border-radius:10px;background:var(--panel);border:1px solid var(--border);}
+  .ins-steps li::before{content:counter(st);width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:11.5px;font-weight:800;
+    background:rgba(94,234,212,0.12);color:var(--glow);font-family:var(--f-mono);}
+  .ins-steps b{color:var(--text);}
+  .ins-tip{font-size:12px;line-height:1.6;color:var(--text-faint);}
+  .ins-tip b{color:var(--text-dim);}
+  .note{font-size:12px;color:var(--text-faint);line-height:1.7;padding:0 2px;margin:0;}
+  .note b{color:var(--text-dim);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>업무 허브<span class="app-pill" id="appPill" hidden>앱</span></h1>
+    <p>근무일지 · 대리점코드 <span class="ver">· 허브 V1.0 (261002)</span></p>
+  </header>
+
+  <a class="dash" href="worklog.html" style="--c:var(--glow);">
+    <span class="tk">근무</span>
+    <span class="info"><span class="nm">근무일지 <small>v1.4</small></span><span class="st" id="st-work">기록 확인 중…</span></span>
+    <span class="go">›</span>
+  </a>
+  <a class="dash" href="dealer.html" style="--c:var(--amber);">
+    <span class="tk">코드</span>
+    <span class="info"><span class="nm">대리점코드 <small>v0.7.0</small></span><span class="st" id="st-dealer">대리점 <b>81곳</b> · 거리 <b>224구간</b><br>코드·이름 검색 · 전화 · 지도 · 경로 거리</span></span>
+    <span class="go">›</span>
+  </a>
+
+  <section class="install" id="install" aria-labelledby="insTitle">
+    <div class="ins-title" id="insTitle">📲 홈 화면에 앱 설치</div>
+    <div class="ins-state" id="insState">설치 가능 여부 확인 중…</div>
+    <button class="ins-btn" id="insBtn" type="button">📲 홈 화면에 설치</button>
+    <ol class="ins-steps" id="stepsAndroid" hidden>
+      <li><span><b>크롬</b> 오른쪽 위 <b>⋮</b> → <b>홈 화면에 추가</b> 또는 <b>앱 설치</b> → <b>설치</b></span></li>
+      <li><span><b>삼성 인터넷</b> 아래 <b>≡</b> → <b>현재 페이지 추가</b> → <b>홈 화면</b></span></li>
+    </ol>
+    <ol class="ins-steps" id="stepsIos" hidden>
+      <li><span><b>사파리</b>로 이 주소를 엽니다 (크롬 앱이면 주소창 옆 <b>공유</b> 사용)</span></li>
+      <li><span>아래(또는 주소창 옆) <b>공유 버튼 □↑</b> → <b>홈 화면에 추가</b></span></li>
+      <li><span><b>웹 앱으로 열기</b>는 <b>끈 채로</b> 두면 아이콘이 사파리에서 열려 사파리의 근무 기록을 그대로 씁니다 → <b>추가</b></span></li>
+    </ol>
+    <div class="ins-tip" id="insTip"></div>
+  </section>
+
+  <p class="note">근무 기록은 근무일지 💾 백업 탭의 <b>☁️ PC·모바일 동기화</b>를 켜면 PC와 폰이 같은 기록을 씁니다(무한매수와 같은 토큰). 이 요약은 이 기기에 마지막으로 맞춰진 기록입니다.</p>
+</div>
+<script>
+const HUB_VERSION = "V1.0", HUB_RELEASE = "261002";
+function readJSON(k){ try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } }
+function renderSummary(){
+  const el = document.getElementById("st-work");
+  const data = readJSON("worklog.data.v2") || {};
+  const keys = Object.keys(data).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k)).sort();
+  if (!keys.length) { el.innerHTML = "저장된 근무 기록 없음"; return; }
+  // 이번 근무 기간: 전월 25일 ~ 당월 24일
+  const t = new Date(); let y = t.getFullYear(), m = t.getMonth(); if (t.getDate() >= 25) { m++; if (m > 11) { m = 0; y++; } }
+  const pad = n => String(n).padStart(2, "0"), key = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const s0 = key(new Date(y, m - 1, 25)), e0 = key(new Date(y, m, 24));
+  let work = 0, off = 0, cost = 0;
+  keys.forEach(k => { if (k < s0 || k > e0) return; const r = data[k]; const sft = typeof r === "string" ? r : r.s;
+    if (sft === "off") off++; else if (sft) work++; if (r && typeof r === "object") cost += (+r.fuel || 0) + (+r.toll || 0) + (+r.urea || 0); });
+  el.innerHTML = `${m + 1}월 근무 <b>${work}일</b> · 휴무 <b>${off}일</b> · 비용 <b>${cost.toLocaleString("ko-KR")}원</b><br>전체 기록 <b>${keys.length}일</b> · 최근 <b>${keys[keys.length - 1].slice(2).replace(/-/g, ".")}</b>`;
+}
+renderSummary();
+
+/* ---------- 홈 화면에 앱 설치 ----------
+   안드로이드(크롬): beforeinstallprompt → 버튼 한 번으로 설치 (크롬 기반 앱 창, 크롬과 같은 기록)
+   아이폰: 웹에서 설치 창을 띄우는 기능 자체가 없음 → 공유 → 홈 화면에 추가 안내 */
+const UA = navigator.userAgent;
+const IS_IOS = /iPhone|iPad|iPod/.test(UA) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const IS_STANDALONE = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+let deferredPrompt = null, installed = false;
+function insRender(){
+  const box = document.getElementById("install"), st = document.getElementById("insState"), btn = document.getElementById("insBtn");
+  const sA = document.getElementById("stepsAndroid"), sI = document.getElementById("stepsIos"), tip = document.getElementById("insTip");
+  document.getElementById("appPill").hidden = !IS_STANDALONE;
+  if (IS_STANDALONE) { box.hidden = true; return; }            // 이미 아이콘으로 실행 중
+  st.className = "ins-state"; btn.hidden = false; btn.classList.remove("ghost"); tip.textContent = "";
+  if (installed) {
+    st.textContent = "✅ 설치 완료! 홈 화면의 ‘업무’ 아이콘을 누르면 이 화면이 바로 열립니다.";
+    btn.hidden = true; sA.hidden = sI.hidden = true; return;
+  }
+  if (location.protocol === "file:") {
+    st.className = "ins-state warn";
+    st.textContent = "⚠ 파일로 연 상태에서는 설치할 수 없습니다. 온라인 주소(https://mins0x001.github.io/WORK/)에서 여세요.";
+    btn.hidden = true; sA.hidden = sI.hidden = true; return;
+  }
+  if (IS_IOS) {
+    st.textContent = "아이폰은 버튼으로 바로 설치할 수 없어요(애플 정책). 아래 3단계로 추가하면 아이콘이 생깁니다.";
+    btn.textContent = "설치 방법 접기/펼치기"; btn.classList.add("ghost"); sI.hidden = false; sA.hidden = true;
+    tip.innerHTML = "<b>웹 앱으로 열기</b>를 켜면 주소창 없는 앱 화면이 되지만, 아이폰은 이 경우 기록 저장소가 사파리와 분리됩니다. 켰다면 사파리 화면의 💾 백업 복사 → 앱 화면에서 복원을 한 번 해주세요.";
+    return;
+  }
+  if (deferredPrompt) {
+    st.textContent = "설치 준비 완료 · 누르면 홈 화면에 ‘업무’ 아이콘이 생깁니다.";
+    btn.textContent = "📲 홈 화면에 설치"; sA.hidden = sI.hidden = true;
+    tip.textContent = "아이콘은 크롬으로 이 허브를 열며, 크롬에서 쓰던 근무 기록을 그대로 씁니다.";
+  } else {
+    st.textContent = "이 브라우저는 설치 창을 직접 띄우지 않거나 이미 설치돼 있습니다. 메뉴에서 추가하세요.";
+    btn.textContent = "설치 방법 접기/펼치기"; btn.classList.add("ghost"); sA.hidden = false; sI.hidden = true;
+  }
+}
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferredPrompt = e; insRender(); });
+window.addEventListener("appinstalled", () => { deferredPrompt = null; installed = true; insRender(); });
+document.getElementById("insBtn").addEventListener("click", async () => {
+  if (deferredPrompt) {
+    const p = deferredPrompt; deferredPrompt = null;
+    try { p.prompt(); const r = await p.userChoice; if (r && r.outcome === "accepted") installed = true; } catch (e) {}
+    insRender(); return;
+  }
+  const s = document.getElementById(IS_IOS ? "stepsIos" : "stepsAndroid"); s.hidden = !s.hidden;
+});
+insRender();
+
+if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register("sw.js").catch(() => {});
+window.addEventListener("pageshow", e => { if (e.persisted) renderSummary(); });
+document.addEventListener("visibilitychange", () => { if (!document.hidden) renderSummary(); });
+</script>
+</body>
+</html>

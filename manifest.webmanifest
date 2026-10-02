@@ -1,0 +1,25 @@
+{
+  "id": "./",
+  "name": "업무 허브",
+  "short_name": "업무",
+  "description": "근무일지 · 대리점코드",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0A1120",
+  "theme_color": "#0A1120",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
