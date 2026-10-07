@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "업무 허브",
+  "name": "업무일지",
   "short_name": "업무",
-  "description": "근무일지 · 대리점코드",
+  "description": "대리점 조회 · 회전 저장 · 근무일지",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
