@@ -4,14 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0A1120">
-<meta name="release-date" content="2026-10-07">
+<meta name="release-date" content="2026-10-13">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="업무일지">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>업무일지 v2.1 (2026-10-07)</title>
+<title>업무일지 v1.00 (2026-10-13)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
@@ -254,7 +254,7 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
   padding:10px 18px;border-radius:99px;font-size:13px;font-weight:700;opacity:0;transition:opacity .2s;pointer-events:none;z-index:30;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
 .toast.on{opacity:1}
 
-/* ================= v2.0 통합 추가분 (대리점 조회 · 회전 저장) ================= */
+/* ================= 통합 추가분 (대리점 조회 · 회전 저장) ================= */
 :root{--g1:#38D98C;--g2:#F5A524}          /* 권역 색: 1권역 경기(초록) · 2권역 서울(주황) */
 .mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
 .tabbar{grid-template-columns:repeat(5,1fr)}
@@ -631,12 +631,12 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 
 <script>
 /* ================= 버전 정보 (하드코딩) =================
-   v2.0 (2026-10-07): 근무일지 v1.4 + 대리점코드 v0.7.1 통합
+   v1.00 (2026-10-13): 버전 번호 새로 시작 — 근무일지 + 대리점코드 통합 앱 (이전 표기 v2.6과 같은 내용)
    - 조회한 대리점 목록을 1·2·3회전으로 그날 일지에 저장, 일지·달력·대리점 카드에서 다시 조회
-   v2.1 (2026-10-07): 충남(의정부) → 의충남 이름 변경, 거리표의 '충남' 구간을 의충남에 연결 */
+   - 다음 버전부터 1.01, 1.02 … 로 올림 */
 const APP_NAME    = '업무일지';
-const APP_VERSION = '2.1';
-const BUILD_DATE  = '2026-10-07';
+const APP_VERSION = '1.00';
+const BUILD_DATE  = '2026-10-13';
 
 /* ================= 대리점 · 거리 데이터 =================
    여기 데이터만 수정하면 됩니다 (대리점명 / 코드 / 전화번호 / 주소)
@@ -670,11 +670,11 @@ const ROWS = [
   {"name": "포기", "codes": ["A983"], "phone": "031-541-1448", "tier": 1, "dist": null, "address": "포천시 호국로 1043"},
   {"name": "현종", "codes": ["4356", "C164"], "phone": "031-544-8683", "tier": 1, "dist": null, "address": ""},
   {"name": "협신", "codes": ["0968"], "phone": "031-563-6377", "tier": 1, "dist": null, "address": "구리시 안골로 18"},
-  {"name": "경동", "codes": ["3512"], "phone": "02-2244-8879", "tier": 2, "dist": null, "address": ""},
+  {"name": "경동", "codes": ["3512"], "phone": "02-2244-8879", "tier": 2, "dist": null, "address": "서울특별시 동대문구 전농로4길 62"},
   {"name": "나로", "codes": ["4343", "C155"], "phone": "02-2249-8894", "tier": 2, "dist": null, "address": "동대문구 천호대로77길 17"},
   {"name": "남용", "codes": ["4494", "C300"], "phone": "02-433-2435", "tier": 2, "dist": null, "address": ""},
   {"name": "대진", "codes": ["2286", "A493"], "phone": "02-454-8814", "tier": 2, "dist": 36.7, "address": "서울 광진구 뚝섬로 647"},
-  {"name": "대창", "codes": ["A776"], "phone": "02-2249-9334", "tier": 2, "dist": null, "address": ""},
+  {"name": "대창", "codes": ["A776"], "phone": "02-2249-9334", "tier": 2, "dist": null, "address": "서울특별시 동대문구 전농로4길 62"},
   {"name": "대한", "codes": ["0110"], "phone": "02-2244-5414", "tier": 2, "dist": null, "address": "동대문구 고미술로 99"},
   {"name": "대현오토", "codes": ["2094", "B220"], "phone": "02-2248-0034", "tier": 2, "dist": null, "address": ""},
   {"name": "대흥K", "codes": ["1328"], "phone": "02-928-7788", "tier": 2, "dist": null, "address": ""},
@@ -682,7 +682,7 @@ const ROWS = [
   {"name": "도림", "codes": ["A617"], "phone": "02-2215-8328", "tier": 2, "dist": null, "address": ""},
   {"name": "동북", "codes": ["0179", "A193"], "phone": "02-989-8770", "tier": 2, "dist": null, "address": ""},
   {"name": "동성", "codes": ["0029"], "phone": "02-2244-6174", "tier": 2, "dist": null, "address": "동대문구 한천로 17 나동"},
-  {"name": "C동우", "codes": ["C015"], "phone": "02-2213-7700", "tier": 2, "dist": null, "address": "동대문구 한천로 10 1층"},
+  {"name": "동우", "codes": ["C015"], "phone": "02-2213-7700", "tier": 2, "dist": null, "address": "동대문구 한천로 10 1층"},
   {"name": "동일", "codes": ["4515"], "phone": "02-2212-0101", "tier": 2, "dist": null, "address": ""},
   {"name": "명성", "codes": ["1459"], "phone": "02-2245-5557", "tier": 2, "dist": null, "address": "동대문구 한천로 31 부품상가 다동"},
   {"name": "문화", "codes": ["1613"], "phone": "02-434-3666", "tier": 2, "dist": null, "address": "중랑구 송림길 4"},
@@ -797,12 +797,12 @@ const DISTANCE_EDGES = [
   {"from": "사업소", "to": "국도", "km": 19, "note": ""},
   {"from": "국도", "to": "우리", "km": 5, "note": ""},
   {"from": "국도", "to": "의기아", "km": 2, "note": ""},
-  {"from": "국도", "to": "의충남", "km": 1, "note": ""},
+  {"from": "국도", "to": "의충남", "km": 2, "note": ""},
   {"from": "국도", "to": "양주H", "km": 15, "note": ""},
   {"from": "국도", "to": "양주K", "km": 15, "note": ""},
   {"from": "국도", "to": "인석", "km": 25, "note": ""},
   {"from": "국도", "to": "고려", "km": 25, "note": ""},
-  {"from": "사업소", "to": "의기아", "km": 18, "note": ""},
+  {"from": "사업소", "to": "의기아", "km": 20, "note": ""},
   {"from": "의기아", "to": "사업소", "km": 23, "note": ""},
   {"from": "의기아", "to": "국도", "km": 2, "note": ""},
   {"from": "의기아", "to": "대맥", "km": 17, "note": ""},
@@ -952,6 +952,8 @@ const DISTANCE_EDGES = [
   {"from": "대흥K", "to": "대일", "km": 5, "note": ""},
   {"from": "대흥K", "to": "온독", "km": 4, "note": ""},
   {"from": "대흥K", "to": "유역", "km": 13, "note": "확인필요"},
+  {"from": "사업소", "to": "동우", "km": 44, "note": ""},
+  {"from": "새론", "to": "국도", "km": 1, "note": ""},
 ];
 const BYNAME = new Map(ROWS.map(r => [r.name, r]));
 const TIER_COUNTS = ROWS.reduce((acc, r) => { acc[r.tier] = (acc[r.tier] || 0) + 1; return acc; }, {});
@@ -982,7 +984,7 @@ function kmShort(i){                             // 목록 한 줄용 짧은 표
 
 /* ================= 데이터 모델 =================
    data["YYYY-MM-DD"] = { s:'1'|'2'|'3'|'off', odo:km, fuel:원, toll:원, urea:원, hol:'사용자 휴일 이름',
-                          r:{ '1':{st:[{n:'대리점명',c:'코드'}…]}, '2':{…}, '3':{…} } }   ← r = 회전별 방문 대리점 (v2.0)
+                          r:{ '1':{st:[{n:'대리점명',c:'코드'}…]}, '2':{…}, '3':{…} } }   ← r = 회전별 방문 대리점
    v1.0(문자열 값)·v1.1~v1.4 데이터 자동 호환 (저장 위치 그대로: worklog.data.v2)            */
 const KEY_V2='worklog.data.v2', KEY_V1='worklog.data.v1';
 const K_SAVED=KEY_V2+'.savedAt', K_BACKUP='worklog.lastBackup', K_SNAP='worklog.snapshot';
@@ -995,7 +997,7 @@ const SHIFT={
 const NUMF=['odo','fuel','toll','urea'];
 const ROUNDS=['1','2','3'];
 const MAX_STOPS=40;
-const RENAMED={'충남(의정부)':'의충남'};      // 이름이 바뀐 대리점: 예전 이름으로 저장된 회전 기록·검색어를 새 이름으로
+const RENAMED={'충남(의정부)':'의충남','C동우':'동우'};      // 이름이 바뀐 대리점: 예전 이름으로 저장된 회전 기록·검색어를 새 이름으로
 
 const lsRaw=k=>{ try{ return localStorage.getItem(k); }catch(e){ return null; } };
 const ls={
