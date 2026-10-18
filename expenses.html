@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>가계부 V1.04 (2026-10-18)</title>
+<title>가계부 V1.05 (2026-10-18)</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
@@ -27,7 +27,7 @@ button{cursor:pointer}
 .top-in,main{max-width:560px;margin:0 auto}
 .brand{display:flex;align-items:center;gap:8px;padding:0 2px 8px}
 .brand b{font-size:19px;font-weight:900}.brand b span{color:var(--glow)}
-.lnk{font-size:12px;font-weight:700;color:var(--dim);text-decoration:none;border:1px solid var(--border);border-radius:99px;padding:4px 10px}
+.lnk{font-size:12px;font-weight:700;color:var(--dim);text-decoration:none;border:1px solid var(--border);border-radius:99px;padding:4px 10px;white-space:nowrap}
 .chip{min-height:28px;padding:0 10px;border-radius:99px;border:1px solid var(--border);background:var(--panel-2);color:var(--faint);font-size:11.5px;font-weight:700}
 .chip.ok{color:var(--glow);border-color:rgba(94,234,212,.4)}.chip.err{color:var(--amber);border-color:rgba(245,165,36,.45)}
 .ver{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11.5px;font-weight:700;color:var(--glow);border:1px solid rgba(94,234,212,.4);background:rgba(94,234,212,.08);border-radius:8px;padding:3px 8px}
@@ -204,9 +204,10 @@ textarea{width:100%;min-height:150px;border-radius:12px;border:1.5px solid var(-
    V1.01 (2026-10-18): 주소 이전 mins0x001.github.io/EXP/ (저장소 EXP)
    V1.02 (2026-10-18): 분류 사전 대폭 확장(통신비·보험·교통·교육·쇼핑·여가 추가, 음식점 이름 규칙), 카카오 장소 검색 자동 분류, 올린 원본 평생 보관·원본/전체 엑셀 내보내기
    V1.04 (2026-10-18): WORK 저장소로 통합(WORK/expenses.html) · 카드 엑셀·붙여넣기는 업무허브에서 · 공통 코드 core.js
-   V1.03 (2026-10-18): 큰 분류 3가지(생활·업무·기타비용) 자동 분류·탭해서 보기·수동 이동, 고정지출(주거비·대출 등 매달 자동 반복), 소비 패턴 간결화 */
+   V1.03 (2026-10-18): 큰 분류 3가지(생활·업무·기타비용) 자동 분류·탭해서 보기·수동 이동, 고정지출(주거비·대출 등 매달 자동 반복), 소비 패턴 간결화
+   V1.05 (2026-10-18): 충전소(LPG 차량)·6만원 이하 단독 주유(바이크)는 생활비용 (같은 날 큰 주유가 있으면 요소수=업무비용) */
 const APP_NAME    = '가계부';
-const APP_VERSION = '1.04';
+const APP_VERSION = '1.05';
 const BUILD_DATE  = '2026-10-18';
 
 function uiSync(state){ renderSync(state); }      // core.js 동기화가 부르는 화면 함수

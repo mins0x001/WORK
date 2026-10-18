@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>업무일지 V1.05 (2026-10-18)</title>
+<title>업무일지 V1.06 (2026-10-18)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
@@ -405,12 +405,13 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 .ins-steps b{color:var(--text)}
 .ins-tip{font-size:12px;line-height:1.6;color:var(--text-faint)}
 .ins-tip b{color:var(--text-dim)}
+.lnk{font-size:12px;font-weight:700;color:var(--dim);text-decoration:none;border:1px solid var(--border);border-radius:99px;padding:4px 10px;white-space:nowrap}
 </style>
 </head>
 <body>
 
 <div class="top"><div class="top-in">
-  <div class="brand"><a href="index.html" style="text-decoration:none;font-size:18px;margin-right:2px" title="업무허브">🏠</a><b>업무<span>일지</span></b>
+  <div class="brand"><b>업무<span>일지</span></b><a class="lnk" href="index.html">🏠 허브</a><a class="lnk" href="expenses.html">가계부 ›</a>
     <button class="sync-chip" id="syncChip" type="button" hidden>☁ 동기화</button>
     <span class="version-badge" id="hdrVer"></span></div>
   <div class="search" id="searchBox">
@@ -693,9 +694,10 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
    V1.02 (2026-10-17): 💳 카드내역 가져오기(삼성카드 이용내역 엑셀·붙여넣기 → 주유·요소수·통행료 자동 반영), 버전 표기 V0.00 통일
    V1.03 (2026-10-17): 💰 가계부(Expenses) 연동 — 카드 엑셀은 가계부에서 올리면 가계부 + 업무일지 비용에 함께 반영
    V1.04 (2026-10-18): 가계부 주소 /EXP/ 로 이전
-   V1.05 (2026-10-18): WORK 폴더 통합 — 업무허브(index.html) 신설, 업무일지는 worklog.html, 가계부는 expenses.html, 카드 올리기는 허브에서 */
+   V1.05 (2026-10-18): WORK 폴더 통합 — 업무허브(index.html) 신설, 업무일지는 worklog.html, 가계부는 expenses.html, 카드 올리기는 허브에서
+   V1.06 (2026-10-18): 상단에 🏠 허브 · 가계부 › 바로가기, 충전소(LPG)·6만원 이하 단독 주유(바이크)는 업무 비용에서 제외 */
 const APP_NAME    = '업무일지';
-const APP_VERSION = '1.05';
+const APP_VERSION = '1.06';
 const BUILD_DATE  = '2026-10-18';
 
 /* ================= 대리점 · 거리 데이터 =================
@@ -1956,16 +1958,19 @@ renderAll();
    ③ 가맹점명으로 주유 · 요소수 · 통행료를 나누고(나머지는 제외)  ④ 미리보기에서 확인 → 날짜별 비용에 반영
    반영한 결제는 그날 기록(cd)에 남겨 같은 파일을 다시 올려도 두 번 들어가지 않음.
    카드 합계와 다른 값을 손으로 입력해 둔 날은 미리보기에서 '직접 입력값 유지'를 고를 수 있음.          */
-const UREA_MAX_AT_STATION=50000;               // 주유소 결제 중 이 금액 미만은 요소수로 추정 (예: 선단IC주유소 10,000원)
+const BIKE_MAX=60000;                         // 주유소 6만원 이하: 같은 날 큰 주유(>6만)가 있으면 요소수(업무), 없으면 바이크 주유(생활)
+const STATION_RE=/주유소|SK에너지|칼텍스|오일뱅크|S-?OIL|에쓰오일|알뜰주유/, LPG_RE=/충전소|LPG|엘피지/;   // 충전소 = LPG 차량 충전(생활)
+function isBigFuel(m,v){ const s=String(m||'').toUpperCase(); return !LPG_RE.test(s)&&STATION_RE.test(s)&&v>BIKE_MAX; }
 const K_CARDRULES='worklog.cardRules';         // 사용자가 미리보기에서 넣고/뺀 가맹점 기억 (이 기기)
 function cardRules(){ try{ return JSON.parse(ls.get(K_CARDRULES)||'{}')||{}; }catch(e){ return {}; } }
-function classifyCard(m,v){
+function classifyCard(m,v,big){   // big: 같은 날 큰 주유가 있음
   const rule=cardRules()[m];
   if(rule!==undefined) return {c:CARD_CATS[rule]?rule:null,rule:true};
   const s=m.toUpperCase();
   if(/요소수|유록스|UREA|롯데정밀화학/.test(s)) return {c:'urea'};
   if(/도로공사|하이패스|HI-?PASS|통행료|고속도로|유료도로/.test(s)) return {c:'toll'};
-  if(/주유소|SK에너지|칼텍스|오일뱅크|S-?OIL|에쓰오일|알뜰주유|충전소/.test(s)) return v<UREA_MAX_AT_STATION?{c:'urea',guess:true}:{c:'fuel'};
+  if(LPG_RE.test(s)) return {c:null};                                       // LPG 충전 → 업무일지 제외(가계부 생활비용)
+  if(STATION_RE.test(s)) return v>BIKE_MAX?{c:'fuel'}:big?{c:'urea',guess:true}:{c:null};   // 소액: 큰 주유 같은 날만 요소수
   return {c:null};
 }
 
@@ -2122,7 +2127,7 @@ function kxBuild(tx,src){
     if(stored&&stored.id!==it.id) it.id=stored.id;
     if(stored&&stored.v===it.v){ it.dup=true; it.c=stored.c; return; }
     if(stored){ it.c=stored.c; it.upd=true; it.def=stored.c; return; }        // 부분취소 등으로 금액이 바뀐 결제
-    const cl=classifyCard(it.m,it.v); it.c=cl.c; it.def=cl.c; it.guess=!!cl.guess;
+    const cl=classifyCard(it.m,it.v,n.items.some(x=>x.k===it.k&&isBigFuel(x.m,x.v))||cdk.some(e=>e.c==='fuel'&&e.v>BIKE_MAX)); it.c=cl.c; it.def=cl.c; it.guess=!!cl.guess;
   });
   kx={...n,src,keep:{}};
 }

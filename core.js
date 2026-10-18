@@ -4,7 +4,7 @@
    - 분류(생활·업무·기타비용 · 세부 · 가게 묶음), 고정지출
    - 동기화: GitHub 비공개 Gist의 expenses.json + worklog.json을 한 번에 합치고 올림 (syncNow)
    각 화면은 uiSync(state) · uiChanged() 두 함수를 정의해 동기화 상태를 그립니다.
-   CORE V1.00 (2026-10-18) */
+   CORE V1.01 (2026-10-18) */
 const CARD_CATS={fuel:{label:'주유',ic:'⛽'},urea:{label:'요소수',ic:'💧'},toll:{label:'통행료',ic:'🛣️'}};
 /* ---- 공통 ---- */
 const $=id=>document.getElementById(id);
@@ -25,16 +25,19 @@ try{ navigator.storage&&navigator.storage.persist&&navigator.storage.persist(); 
    ③ 가맹점명으로 주유 · 요소수 · 통행료를 나누고(나머지는 제외)  ④ 미리보기에서 확인 → 날짜별 비용에 반영
    반영한 결제는 그날 기록(cd)에 남겨 같은 파일을 다시 올려도 두 번 들어가지 않음.
    카드 합계와 다른 값을 손으로 입력해 둔 날은 미리보기에서 '직접 입력값 유지'를 고를 수 있음.          */
-const UREA_MAX_AT_STATION=50000;               // 주유소 결제 중 이 금액 미만은 요소수로 추정 (예: 선단IC주유소 10,000원)
+const BIKE_MAX=60000;                         // 주유소 6만원 이하: 같은 날 큰 주유(>6만)가 있으면 요소수(업무), 없으면 바이크 주유(생활)
+const STATION_RE=/주유소|SK에너지|칼텍스|오일뱅크|S-?OIL|에쓰오일|알뜰주유/, LPG_RE=/충전소|LPG|엘피지/;   // 충전소 = LPG 차량 충전(생활)
+function isBigFuel(m,v){ const s=String(m||'').toUpperCase(); return !LPG_RE.test(s)&&STATION_RE.test(s)&&v>BIKE_MAX; }
 const K_CARDRULES='worklog.cardRules';         // 사용자가 미리보기에서 넣고/뺀 가맹점 기억 (이 기기)
 function cardRules(){ try{ return JSON.parse(ls.get(K_CARDRULES)||'{}')||{}; }catch(e){ return {}; } }
-function classifyCard(m,v){
+function classifyCard(m,v,big){   // big: 같은 날 큰 주유가 있음
   const rule=cardRules()[m];
   if(rule!==undefined) return {c:CARD_CATS[rule]?rule:null,rule:true};
   const s=m.toUpperCase();
   if(/요소수|유록스|UREA|롯데정밀화학/.test(s)) return {c:'urea'};
   if(/도로공사|하이패스|HI-?PASS|통행료|고속도로|유료도로/.test(s)) return {c:'toll'};
-  if(/주유소|SK에너지|칼텍스|오일뱅크|S-?OIL|에쓰오일|알뜰주유|충전소/.test(s)) return v<UREA_MAX_AT_STATION?{c:'urea',guess:true}:{c:'fuel'};
+  if(LPG_RE.test(s)) return {c:null};                                       // LPG 충전 → 업무일지 제외(가계부 생활비용)
+  if(STATION_RE.test(s)) return v>BIKE_MAX?{c:'fuel'}:big?{c:'urea',guess:true}:{c:null};   // 소액: 큰 주유 같은 날만 요소수
   return {c:null};
 }
 
@@ -191,7 +194,7 @@ const metaOf=k=>Object.assign({mt:{},del:{},last:0,dirty:false,note:''},rj(k,{})
 function touch(keys){
   const m=metaOf(EM), now=Date.now();
   keys.forEach(k=>{ if(E[k]){ m.mt[k]=now; delete m.del[k]; } else { m.del[k]=now; delete m.mt[k]; } });
-  m.dirty=true; ls.set(EM,JSON.stringify(m));
+  m.dirty=true; touchN++; ls.set(EM,JSON.stringify(m));
   if(!ls.set(EK,JSON.stringify(E))) toast('⚠ 저장 실패: 저장 공간을 확인하세요');
   schedSync(1500);
 }
@@ -225,10 +228,31 @@ const CATS=[['life','생활비용','🏠'],['work','업무비용','🚚'],['etc'
 const CATN=Object.fromEntries(CATS.map(c=>[c[0],c[1]])), CATI=Object.fromEntries(CATS.map(c=>[c[0],c[2]]));
 const CAT_DEF={'주유·차량':'work','통행료':'work','기타':'etc','금융·수수료':'etc','경조사':'etc'};   // 나머지(주거·대출·식비…)는 생활비용
 const FIXED_G=new Set(['주거·공과금','대출','통신비','보험']);                                      // 고정비로 보는 세부 분류
+let _bf=null,_bfE=null,_bfN=-1,touchN=0;
+function bigFuelDay(d){          // 그날 6만원 넘는 주유가 있었나 (요소수 ↔ 바이크 주유 구분)
+  if(_bfE!==E||_bfN!==touchN){ _bf=new Set(); Object.keys(E).forEach(k=>{ const r=E[k]; if(k.startsWith('t:')&&r&&isBigFuel(r.m,r.v)) _bf.add(r.d); }); _bfE=E; _bfN=touchN; }
+  return _bf.has(d);
+}
 function catOf(r){
   if(r.c) return r.c;
   const rule=E['r:'+brandOf(r.m)]; if(rule&&rule.c) return rule.c;
-  return CAT_DEF[groupOf(r)]||'life';
+  const g=groupOf(r);
+  if(g==='주유·차량'){ const s=String(r.m||'').toUpperCase();
+    if(LPG_RE.test(s)) return 'life';                                              // 충전소 = LPG 차량 충전
+    if(STATION_RE.test(s)&&r.v<=BIKE_MAX&&!bigFuelDay(r.d)) return 'life'; }       // 6만원 이하 단독 주유 = 바이크
+  return CAT_DEF[g]||'life';
+}
+/* V1.01: 예전에 업무일지 비용으로 들어간 충전소(LPG)·바이크 주유를 업무일지에서 빼기 (몇 번 실행돼도 같은 결과) */
+function migrateWork(){
+  const W=rj(WK,{}), wm=metaOf(WM), now=Date.now(); let n=0;
+  Object.keys(W).forEach(k=>{ const rec=W[k]; if(!rec||!rec.cd||!rec.cd.length) return;
+    const big=rec.cd.some(e=>e.c==='fuel'&&e.v>BIKE_MAX&&isBigFuel(e.m,e.v)), out=rec.cd.filter(e=>(e.c==='fuel'||e.c==='urea')&&classifyCard(e.m,e.v,big).c===null);
+    if(!out.length) return;
+    out.forEach(e=>{ const v=(+rec[e.c]||0)-e.v; if(v>0) rec[e.c]=v; else delete rec[e.c]; });
+    rec.cd=rec.cd.filter(e=>!out.includes(e)); if(!rec.cd.length) delete rec.cd;
+    wm.mt[k]=now; delete wm.del[k]; n++; });
+  if(n){ wm.dirty=true; ls.set(WK,JSON.stringify(W)); ls.set(WM,JSON.stringify(wm)); }
+  return n;
 }                       // 업무비로 보는 분류
 const BRANDS=[[/GS25|지에스\(?GS\)?25/,'GS25'],[/씨유|\(CU\)|^CU/,'CU'],[/세븐일레븐|코리아세븐/,'세븐일레븐'],[/이마트24/,'이마트24'],
   [/메가엠지씨|메가커피/,'메가커피'],[/스타벅스/,'스타벅스'],[/파리바게/,'파리바게뜨'],[/다이소/,'다이소'],[/노브랜드/,'노브랜드'],[/하나로/,'농협하나로'],[/도로공사|하이패스/,'하이패스']];
@@ -269,7 +293,8 @@ const sumV=a=>a.reduce((x,r)=>x+r.v,0);
 function applyWork(items){            // 업무일지(worklog.data.v2) 날짜별 주유·요소수·통행료와 카드 결제 목록(cd)
   const W=rj(WK,{}), wm=metaOf(WM), now=Date.now(); let days=0;
   const byDay={};
-  items.forEach(it=>{ const c=classifyCard(it.m,it.v).c; if(c) (byDay[it.k]=byDay[it.k]||[]).push(Object.assign({c},it)); });
+  const big=k=>items.some(x=>x.k===k&&isBigFuel(x.m,x.v))||((W[k]||{}).cd||[]).some(e=>e.c==='fuel'&&e.v>BIKE_MAX);
+  items.forEach(it=>{ const c=classifyCard(it.m,it.v,big(it.k)).c; if(c) (byDay[it.k]=byDay[it.k]||[]).push(Object.assign({c},it)); });
   Object.keys(byDay).forEach(k=>{
     const rec=Object.assign({},W[k]||{}), old=rec.cd||[];
     const adds=byDay[k].filter(it=>!old.some(e=>e.id===it.id||(e.m===it.m&&e.v===it.v&&(e.tm||'')===(it.tm||''))));
@@ -385,7 +410,8 @@ async function syncNow(){
     }
     if(Object.keys(files).length) await gh('/gists/'+syncGist(),{method:'PATCH',body:JSON.stringify({files})});
     syncErr='';
-    if(changed) uiChanged();
+    if(changed){ if(migrateWork()) schedSync(800); uiChanged(); }
   }catch(e){ syncErr=e.message; }
   finally{ syncBusy=false; uiSync(); if(syncAgain){ syncAgain=false; schedSync(300); } }
 }
+migrateWork();
