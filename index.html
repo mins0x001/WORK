@@ -4,14 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0A1120">
-<meta name="release-date" content="2026-10-17">
+<meta name="release-date" content="2026-10-18">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="업무일지">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>업무일지 V1.03 (2026-10-17)</title>
+<title>업무일지 V1.04 (2026-10-18)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
@@ -518,7 +518,7 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
     <div class="card" style="--c:var(--violet)">
       <div class="card-head"><div class="card-icon">💳</div><div><div class="card-kicker">EXPENSES · 삼성카드</div><h2>가계부 · 카드내역</h2></div><small>주유 · 요소수 · 통행료</small></div>
       <div class="note" style="margin:0 0 10px">삼성카드 앱 → 이용내역 조회 → <b>엑셀 저장</b>한 파일을 <b>가계부</b>에서 올리면 모든 지출은 가계부에, 주유·요소수·통행료는 이 일지의 날짜별 비용에 함께 들어갑니다. 같은 파일을 다시 올려도 중복되지 않습니다.</div>
-      <a class="btn" href="Expenses/">💰 가계부 열기 <small>월·연 분석 · 소비 패턴</small></a>
+      <a class="btn" href="/EXP/">💰 가계부 열기 <small>월·연 분석 · 소비 패턴</small></a>
       <button class="btn ghost" id="cardFileBtn" type="button">📂 가계부에서 카드 엑셀 올리기</button>
       <button class="btn ghost" id="cardPasteBtn" type="button">📋 복사한 내역 붙여넣기</button>
       <input type="file" id="cardFile" accept=".xlsx,.csv,.txt,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,text/plain" hidden>
@@ -691,10 +691,11 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
    - 조회한 대리점 목록을 1·2·3회전으로 그날 일지에 저장, 일지·달력·대리점 카드에서 다시 조회
    V1.01 (2026-10-14): 사업소 → 국도 19km → 20km
    V1.02 (2026-10-17): 💳 카드내역 가져오기(삼성카드 이용내역 엑셀·붙여넣기 → 주유·요소수·통행료 자동 반영), 버전 표기 V0.00 통일
-   V1.03 (2026-10-17): 💰 가계부(Expenses) 연동 — 카드 엑셀은 가계부에서 올리면 가계부 + 업무일지 비용에 함께 반영 */
+   V1.03 (2026-10-17): 💰 가계부(Expenses) 연동 — 카드 엑셀은 가계부에서 올리면 가계부 + 업무일지 비용에 함께 반영
+   V1.04 (2026-10-18): 가계부 주소 /EXP/ 로 이전 */
 const APP_NAME    = '업무일지';
-const APP_VERSION = '1.03';
-const BUILD_DATE  = '2026-10-17';
+const APP_VERSION = '1.04';
+const BUILD_DATE  = '2026-10-18';
 
 /* ================= 대리점 · 거리 데이터 =================
    여기 데이터만 수정하면 됩니다 (대리점명 / 코드 / 전화번호 / 주소)
@@ -2226,8 +2227,8 @@ async function cardFromFile(f){
   }catch(err){ toast('⚠ '+(err&&err.message||'파일을 읽지 못했습니다')); }
 }
 $('cardFile').onchange=e=>{ const f=e.target.files[0]; e.target.value=''; if(f) cardFromFile(f); };
-$('cardFileBtn').onclick=()=>{ location.href='Expenses/#import'; };   // 엑셀은 가계부에서 올리면 가계부 + 업무일지에 함께 반영
-$('cardPasteBtn').onclick=()=>{ location.href='Expenses/#paste'; };
+$('cardFileBtn').onclick=()=>{ location.href='/EXP/#import'; };   // 엑셀은 가계부에서 올리면 가계부 + 업무일지에 함께 반영
+$('cardPasteBtn').onclick=()=>{ location.href='/EXP/#paste'; };
 $('kParse').onclick=()=>{
   const tx=rowsToCardTx(textRows($('kText').value||''));
   if(!tx.length){ toast('⚠ 날짜·가맹점·금액이 있는 줄을 찾지 못했습니다'); return; }
@@ -2236,7 +2237,7 @@ $('kParse').onclick=()=>{
 $('kApply').onclick=kxApply;
 $('kCancel').onclick=()=>closeK();
 $('kOverlay').onclick=e=>{ if(e.target.id==='kOverlay') closeK(); };
-$('cCost').addEventListener('click',e=>{ if(e.target.closest('.kx-open')) location.href='Expenses/#import'; });
+$('cCost').addEventListener('click',e=>{ if(e.target.closest('.kx-open')) location.href='/EXP/#import'; });
 window.addEventListener('popstate',()=>{ if($('kOverlay').classList.contains('on')) closeK(true); });
 /* 날짜 창: 그날 반영된 카드 결제 */
 function renderSheetCard(){
