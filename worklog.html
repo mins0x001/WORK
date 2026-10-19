@@ -4,14 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0A1120">
-<meta name="release-date" content="2026-10-18">
+<meta name="release-date" content="2026-10-19">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="업무일지">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>업무일지 V1.06 (2026-10-18)</title>
+<title>업무일지 V1.07 (2026-10-19)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
@@ -695,10 +695,11 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
    V1.03 (2026-10-17): 💰 가계부(Expenses) 연동 — 카드 엑셀은 가계부에서 올리면 가계부 + 업무일지 비용에 함께 반영
    V1.04 (2026-10-18): 가계부 주소 /EXP/ 로 이전
    V1.05 (2026-10-18): WORK 폴더 통합 — 업무허브(index.html) 신설, 업무일지는 worklog.html, 가계부는 expenses.html, 카드 올리기는 허브에서
-   V1.06 (2026-10-18): 상단에 🏠 허브 · 가계부 › 바로가기, 충전소(LPG)·6만원 이하 단독 주유(바이크)는 업무 비용에서 제외 */
+   V1.06 (2026-10-18): 상단에 🏠 허브 · 가계부 › 바로가기, 충전소(LPG)·6만원 이하 단독 주유(바이크)는 업무 비용에서 제외
+   V1.07 (2026-10-19): 사업소 → 새론 23km → 24km */
 const APP_NAME    = '업무일지';
-const APP_VERSION = '1.06';
-const BUILD_DATE  = '2026-10-18';
+const APP_VERSION = '1.07';
+const BUILD_DATE  = '2026-10-19';
 
 /* ================= 대리점 · 거리 데이터 =================
    여기 데이터만 수정하면 됩니다 (대리점명 / 코드 / 전화번호 / 주소)
@@ -846,7 +847,7 @@ const DISTANCE_EDGES = [
   {"from": "의충남", "to": "국도", "km": 1, "note": ""},
   {"from": "의충남", "to": "대맥", "km": 14, "note": ""},
   {"from": "의충남", "to": "양주K", "km": 14, "note": ""},
-  {"from": "사업소", "to": "새론", "km": 23, "note": ""},
+  {"from": "사업소", "to": "새론", "km": 24, "note": ""},
   {"from": "새론", "to": "의충남", "km": 2, "note": ""},
   {"from": "새론", "to": "의기아", "km": 2, "note": ""},
   {"from": "새론", "to": "우리", "km": 6, "note": ""},
