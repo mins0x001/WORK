@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>업무일지 V1.08 (2026-10-20)</title>
+<title>업무일지 V1.09 (2026-10-20)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
@@ -697,9 +697,10 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
    V1.05 (2026-10-18): WORK 폴더 통합 — 업무허브(index.html) 신설, 업무일지는 worklog.html, 가계부는 expenses.html, 카드 올리기는 허브에서
    V1.06 (2026-10-18): 상단에 🏠 허브 · 가계부 › 바로가기, 충전소(LPG)·6만원 이하 단독 주유(바이크)는 업무 비용에서 제외
    V1.07 (2026-10-19): 사업소 → 새론 23km → 24km
-   V1.08 (2026-10-20): 다른 화면(허브)에서 바뀐 기록을 돌아올 때 다시 읽음 — 뒤로가기·탭 전환 후 저장 시 카드 반영분이 덮어써지던 문제 수정 */
+   V1.08 (2026-10-20): 다른 화면(허브)에서 바뀐 기록을 돌아올 때 다시 읽음 — 뒤로가기·탭 전환 후 저장 시 카드 반영분이 덮어써지던 문제 수정
+   V1.09 (2026-10-20): 충남(장안) → 장충남 (예전 이름 기록·검색도 연결) */
 const APP_NAME    = '업무일지';
-const APP_VERSION = '1.08';
+const APP_VERSION = '1.09';
 const BUILD_DATE  = '2026-10-20';
 
 /* ================= 대리점 · 거리 데이터 =================
@@ -778,7 +779,7 @@ const ROWS = [
   {"name": "제일", "codes": ["A214"], "phone": "02-999-8585", "tier": 2, "dist": null, "address": "도봉구 도봉로 644-45"},
   {"name": "제일(장안)", "codes": ["0021"], "phone": "02-2242-3181", "tier": 2, "dist": null, "address": ""},
   {"name": "준흥", "codes": ["4236"], "phone": "02-2299-1297", "tier": 2, "dist": null, "address": ""},
-  {"name": "충남(장안)", "codes": ["3550", "A954"], "phone": "02-2249-0577", "tier": 2, "dist": null, "address": ""},
+  {"name": "장충남", "codes": ["3550", "A954"], "phone": "02-2249-0577", "tier": 2, "dist": null, "address": ""},
   {"name": "태양", "codes": ["0113"], "phone": "02-923-1549", "tier": 2, "dist": null, "address": ""},
   {"name": "태호", "codes": ["2788", "A128"], "phone": "02-2243-2507", "tier": 2, "dist": null, "address": ""},
   {"name": "터보", "codes": ["4008", "B222"], "phone": "02-2246-5522", "tier": 2, "dist": null, "address": "동대문구 한천로 17 자동차부품상가"},
@@ -1062,7 +1063,7 @@ const NUMF=['odo','fuel','toll','urea'];
 const ROUNDS=['1','2','3'];
 const CARD_CATS={fuel:{label:'주유',ic:'⛽'},urea:{label:'요소수',ic:'💧'},toll:{label:'통행료',ic:'🛣️'}};   // 카드 결제 분류 = 비용 항목 이름
 const MAX_STOPS=40;
-const RENAMED={'충남(의정부)':'의충남','C동우':'동우'};      // 이름이 바뀐 대리점: 예전 이름으로 저장된 회전 기록·검색어를 새 이름으로
+const RENAMED={'충남(의정부)':'의충남','충남(장안)':'장충남','C동우':'동우'};      // 이름이 바뀐 대리점: 예전 이름으로 저장된 회전 기록·검색어를 새 이름으로
 
 const lsRaw=k=>{ try{ return localStorage.getItem(k); }catch(e){ return null; } };
 const ls={
