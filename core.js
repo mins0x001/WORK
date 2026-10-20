@@ -4,7 +4,7 @@
    - 분류(생활·업무·기타비용 · 세부 · 가게 묶음), 고정지출
    - 동기화: GitHub 비공개 Gist의 expenses.json + worklog.json을 한 번에 합치고 올림 (syncNow)
    각 화면은 uiSync(state) · uiChanged() 두 함수를 정의해 동기화 상태를 그립니다.
-   CORE V1.01 (2026-10-18) */
+   CORE V1.02 (2026-10-20) */
 const CARD_CATS={fuel:{label:'주유',ic:'⛽'},urea:{label:'요소수',ic:'💧'},toll:{label:'통행료',ic:'🛣️'}};
 /* ---- 공통 ---- */
 const $=id=>document.getElementById(id);
@@ -415,3 +415,7 @@ async function syncNow(){
   finally{ syncBusy=false; uiSync(); if(syncAgain){ syncAgain=false; schedSync(300); } }
 }
 migrateWork();
+/* V1.02: 다른 탭·뒤로가기로 돌아오면 저장된 기록을 다시 읽어 옛 기록으로 덮어쓰지 않게 */
+function reloadE(){ const n=rj(EK,null); if(n){ E=n; if(typeof uiChanged==='function') uiChanged(); } }
+window.addEventListener('storage',e=>{ if(e.key===EK||e.key===WK) reloadE(); });
+window.addEventListener('pageshow',e=>{ if(e.persisted) reloadE(); });

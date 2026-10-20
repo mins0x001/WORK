@@ -4,14 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0A1120">
-<meta name="release-date" content="2026-10-19">
+<meta name="release-date" content="2026-10-20">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="업무일지">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>업무일지 V1.07 (2026-10-19)</title>
+<title>업무일지 V1.08 (2026-10-20)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
@@ -696,10 +696,11 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
    V1.04 (2026-10-18): 가계부 주소 /EXP/ 로 이전
    V1.05 (2026-10-18): WORK 폴더 통합 — 업무허브(index.html) 신설, 업무일지는 worklog.html, 가계부는 expenses.html, 카드 올리기는 허브에서
    V1.06 (2026-10-18): 상단에 🏠 허브 · 가계부 › 바로가기, 충전소(LPG)·6만원 이하 단독 주유(바이크)는 업무 비용에서 제외
-   V1.07 (2026-10-19): 사업소 → 새론 23km → 24km */
+   V1.07 (2026-10-19): 사업소 → 새론 23km → 24km
+   V1.08 (2026-10-20): 다른 화면(허브)에서 바뀐 기록을 돌아올 때 다시 읽음 — 뒤로가기·탭 전환 후 저장 시 카드 반영분이 덮어써지던 문제 수정 */
 const APP_NAME    = '업무일지';
-const APP_VERSION = '1.07';
-const BUILD_DATE  = '2026-10-19';
+const APP_VERSION = '1.08';
+const BUILD_DATE  = '2026-10-20';
 
 /* ================= 대리점 · 거리 데이터 =================
    여기 데이터만 수정하면 됩니다 (대리점명 / 코드 / 전화번호 / 주소)
@@ -1943,7 +1944,11 @@ let tt;
 function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('on'),2400); }
 function renderAll(){ renderMonth(); renderYear(); renderBackup(); renderDealers(); }
 /* 앱을 켜 둔 채 날짜가 바뀌면 '오늘' 기준을 새로 잡음 */
+function refreshFromStorage(){ const raw=ls.get(KEY_V2); if(raw&&raw!==JSON.stringify(data)){ data=load(); renderAll(); } }   // 허브·가계부가 바꾼 기록 다시 읽기
+window.addEventListener('storage',e=>{ if(e.key===KEY_V2) refreshFromStorage(); });
+window.addEventListener('pageshow',e=>{ if(e.persisted) refreshFromStorage(); });
 document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden) refreshFromStorage();
   if(document.hidden||nowKey()===todayKey) return;
   today=new Date(); today.setHours(0,0,0,0); todayKey=keyOf(today); renderAll();
 });
