@@ -4,7 +4,7 @@
    - 분류(생활·업무·기타비용 · 세부 · 가게 묶음), 고정지출
    - 동기화: GitHub 비공개 Gist의 expenses.json + worklog.json을 한 번에 합치고 올림 (syncNow)
    각 화면은 uiSync(state) · uiChanged() 두 함수를 정의해 동기화 상태를 그립니다.
-   CORE V1.03 (2026-10-20) */
+   CORE V1.04 (2026-10-20) */
 const CARD_CATS={fuel:{label:'주유',ic:'⛽'},urea:{label:'요소수',ic:'💧'},toll:{label:'통행료',ic:'🛣️'}};
 /* ---- 공통 ---- */
 const $=id=>document.getElementById(id);
@@ -98,16 +98,7 @@ function decodeText(buf){
   if(t.includes('�')){ try{ t=new TextDecoder('euc-kr').decode(buf); }catch(e){} }   // 카드사 CSV는 EUC-KR인 경우가 많음
   return t.replace(/^﻿/,'');
 }
-function mobileRows(t){     // 카드사 앱 화면 복사 형식: 가맹점 줄 → 금액 줄(160,627원) → 날짜 줄(2026.09.09 본인 일시불 …)
-  const L=t.split(/\r?\n/).map(l=>l.trim()).filter(Boolean), out=[];
-  for(let i=2;i<L.length;i++){
-    const dm=L[i].match(/^(\d{4}[.\-\/]\d{1,2}[.\-\/]\d{1,2})(?:\s+(\d{1,2}:\d{2}(?::\d{2})?))?(.*)$/), am=L[i-1].match(/^(-?[\d,]+)\s*원$/);
-    if(dm&&am&&!/^-?[\d,]+\s*원$/.test(L[i-2])&&!/^\d{4}[.\-\/]/.test(L[i-2])) out.push([dm[1],dm[2]||'',L[i-2],am[1],(/취소/.test(dm[3])?'취소 ':'')+dm[3].trim()]);
-  }
-  return out;
-}
 function textRows(t){
-  if(!t.includes('\t')){ const m=mobileRows(t); if(m.length) return m; }
   return t.split(/\r?\n/).filter(l=>l.trim()).map(l=>{
     if(l.includes('\t')) return l.split('\t');
     const out=[]; let cur='', q=false;
@@ -175,6 +166,49 @@ function rowsToCardTx(rows){
     if(t) tx.push(t);
   }
   return tx;
+}
+/* ---- 형식 없는 붙여넣기: 줄·칸 모양과 상관없이 '날짜'를 기준으로 한 건씩 묶고, 그 안에서 금액·가맹점을 찾음 ----
+   예) 앱 화면(가맹점 → 금액 → 날짜 줄), 한 줄 표, 날짜가 먼저 오는 목록, 연도 없는 날짜(10.15 · 10월 15일)도 OK */
+const FZ_DATE=/(20\d{2})\s*[.\-\/년]\s*(\d{1,2})\s*[.\-\/월]\s*(\d{1,2})\s*일?|(?<![\d.,])(\d{1,2})\s*(?:[.\/]|월\s*)(\d{1,2})\s*일?(?![\d,]|\s*원)/;
+const FZ_AMT=/(-?\d{1,3}(?:,\d{3})+|-?\d+)\s*원|(-?\d{1,3}(?:,\d{3})+)(?![\d*])/g;
+const FZ_SKIP_AMT=/(할인|적립|포인트|잔액|한도|수수료|이자|캐시백|혜택|청구|결제예정|누적|합계|총)\s*[:：]?\s*$/;
+const FZ_STOP=/^(본인|가족|일시불|할부|무이자|\d+개월|승인|정상|국내|해외|신용|체크|일반|결제|매출|복지할인|할인|적립|포인트|원|KRW|매입|확정|대기|전표|이용|이용일|이용일시|가맹점|가맹점명|금액|이용금액|승인금액|승인번호|카드|구분|상태|사용처|누적|잔액|합계|한도|[\d\-:.,*\/]+|\[.*\]|\(.*\)|\S*님|\S*\d{3,}\*+\S*|\*+\d+)$/i;
+function fzDate(m){
+  if(m[1]) return `${m[1]}-${pad(+m[2])}-${pad(+m[3])}`;
+  const mo=+m[4], d=+m[5]; if(mo<1||mo>12||d<1||d>31) return '';
+  const t=new Date(); let y=t.getFullYear(); if(new Date(y,mo-1,d)>new Date(t.getFullYear(),t.getMonth(),t.getDate()+1)) y--;   // 연도 없으면 미래가 안 되게
+  return `${y}-${pad(mo)}-${pad(d)}`;
+}
+function fuzzyCardTx(text){
+  const L=String(text||'').split(/\r?\n/).map(l=>l.trim()).filter(Boolean), di=[];
+  L.forEach((l,i)=>{ const m=l.match(FZ_DATE); if(m&&fzDate(m)) di.push(i); });
+  if(!di.length) return [];
+  const amtIn=l=>{ const out=[]; let m; FZ_AMT.lastIndex=0; const s=l.replace(FZ_DATE,' ').replace(/\d{1,2}:\d{2}(:\d{2})?/g,' ');
+    while((m=FZ_AMT.exec(s))){ if(!FZ_SKIP_AMT.test(s.slice(Math.max(0,m.index-10),m.index))) out.push(+(m[1]||m[2]).replace(/,/g,'')); } return out; };
+  const before=L.slice(0,di[0]).some(l=>amtIn(l).length);          // 금액이 날짜보다 먼저 나오면 '앞쪽 묶음' 형식
+  const tx=[], cnt={};
+  di.forEach((d,n)=>{
+    const blk=before?L.slice(n?di[n-1]+1:0,d+1):L.slice(d,n+1<di.length?di[n+1]:L.length);
+    const dm=L[d].match(FZ_DATE), k=fzDate(dm), tt=parseCardTime(L[d].replace(FZ_DATE,' ')+' '+blk.join(' ').replace(FZ_DATE,' '));
+    let v=null; for(const l of (before?blk.slice().reverse():blk)){ const a=amtIn(l).filter(x=>x!==0); if(a.length){ v=a[0]; break; } }
+    if(v===null) return;
+    const cands=[];
+    blk.forEach(l=>{ if(FZ_SKIP_AMT.test(l.replace(/[\d,\s원]+$/,''))&&!/[가-힣A-Za-z]{2,}.*\d/.test(l.replace(FZ_SKIP_AMT,''))) return;
+      const c=l.replace(FZ_DATE,' ').replace(/\d{1,2}:\d{2}(:\d{2})?/g,' ').replace(/-?\d{1,3}(,\d{3})+\s*원?|-?\d+\s*원/g,' ')
+        .split(/\t|\s{2,}|\|/).map(seg=>seg.split(/\s+/).filter(w=>w&&!FZ_STOP.test(w)&&!/^(할인|적립|포인트)/.test(w)).join(' ').trim()).filter(x=>/[가-힣A-Za-z]{2,}/.test(x));
+      c.forEach(x=>cands.push({x,dl:l===L[d]})); });
+    const nd=cands.filter(c=>!c.dl), pick=(nd.length?nd:cands), m=pick.length?(before?pick[pick.length-1]:pick[0]).x:'';
+    if(!m) return;
+    if(/취소/.test(blk.join(' '))&&v>0) v=-v;
+    const ck=`${k}|${m}|${Math.abs(v)}|${v<0?'-':'+'}`; cnt[ck]=(cnt[ck]||0)+1;
+    tx.push({k,tm:tt.hm,ts:tt.full||`~${Math.abs(v)}~${cnt[ck]}`,m,v,ap:''});   // 시각 없으면 금액·순번으로 구분 (같은 가게 같은 날 2번도 따로)
+  });
+  tx.filter(t=>t.v<0).forEach(c=>{ const o=tx.find(t=>t.v===-c.v&&t.m===c.m&&!t.x); if(o){ o.x=c.x=1; } });   // 취소: 다른 날짜의 같은 가게·같은 금액 승인과 상계
+  return tx.filter(t=>!t.x);
+}
+function pasteTx(text){        // 표 형식으로 읽은 결과와 비교해 더 많이 읽힌 쪽 사용
+  const rows=textRows(text), a=rowsToCardTx(rows), b=fuzzyCardTx(text);
+  return b.length>a.length?{tx:b,rows:rows,fuzzy:true}:{tx:a,rows:rows,fuzzy:false};
 }
 /* 같은 결제(승인번호, 없으면 날짜+시각+가맹점)의 승인·취소를 더해서 정리 */
 function netCardTx(tx){

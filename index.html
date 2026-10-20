@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>업무허브 V1.03 (2026-10-20)</title>
+<title>업무허브 V1.04 (2026-10-20)</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
@@ -49,6 +49,7 @@ main{padding:14px 14px 24px;display:grid;gap:12px}
 .sheet{background:var(--panel);border:1px solid var(--border);border-bottom:0;width:100%;max-width:560px;margin:0 auto;border-radius:22px 22px 0 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));display:grid;gap:8px}
 .sheet h3{margin:0 0 4px;font-size:18px}
 textarea{width:100%;min-height:160px;border-radius:12px;border:1.5px solid var(--border);background:var(--panel-2);font-family:'JetBrains Mono',monospace;font-size:12.5px;padding:10px;outline:none}
+.pl{max-height:30vh;overflow:auto;margin-top:6px;font-size:12.5px;line-height:1.7;border-top:1px solid var(--border);padding-top:6px}
 .toast{position:fixed;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#0F2A2A;color:var(--glow);border:1px solid rgba(94,234,212,.4);padding:10px 18px;border-radius:99px;font-size:13px;font-weight:700;opacity:0;transition:opacity .2s;pointer-events:none;z-index:30;max-width:92vw;text-align:center}
 .toast.on{opacity:1}
 </style>
@@ -75,8 +76,9 @@ textarea{width:100%;min-height:160px;border-radius:12px;border:1.5px solid var(-
 </main>
 <div class="ov" id="pOv"><div class="sheet">
   <h3>📋 복사한 내역 붙여넣기</h3>
-  <div class="sub">카드사 앱·홈페이지의 이용내역 표를 복사해 붙여넣으세요. 한 줄에 날짜 · 시각 · 가맹점 · 금액이 있으면 됩니다. 카드사 <b>앱 화면</b>(가맹점 → 금액 → 날짜 줄)을 그대로 복사해도 됩니다.</div>
+  <div class="sub">카드사 앱·문자·홈페이지 어디서 복사해도 됩니다. <b>날짜 · 가맹점 · 금액</b>만 들어 있으면 줄 모양과 상관없이 읽고, 반영 전에 읽은 내용을 보여줍니다.</div>
   <textarea id="pText" spellcheck="false" placeholder="2026.08.24	17:32:05	선단IC주유소	242,459	일시불"></textarea>
+  <div class="res" id="pPrev"></div>
   <button class="btn" type="button" id="pGo">읽고 반영하기</button>
   <button class="btn line" type="button" id="pCancel">닫기</button>
 </div></div>
@@ -89,9 +91,10 @@ textarea{width:100%;min-height:160px;border-radius:12px;border:1.5px solid var(-
    V1.00 (2026-10-18): 업무허브 — 카드 엑셀·붙여넣기 한 곳에서 올리기(가계부 + 업무일지 자동 반영), 업무일지·가계부 이동, 이번 달 요약
    V1.01 (2026-10-18): 충전소·바이크 주유 생활비용 분류 반영, 업무일지에서 해당 비용 자동 정리
    V1.02 (2026-10-20): 다른 화면(허브)에서 바뀐 기록을 돌아올 때 다시 읽음 — 뒤로가기·탭 전환 후 저장 시 카드 반영분이 덮어써지던 문제 수정
-   V1.03 (2026-10-20): 카드사 앱 화면 복사(가맹점 → 금액 → 날짜 줄) 붙여넣기 지원, 시각 없는 내역과 엑셀 중복 방지 */
+   V1.03 (2026-10-20): 카드사 앱 화면 복사(가맹점 → 금액 → 날짜 줄) 붙여넣기 지원, 시각 없는 내역과 엑셀 중복 방지
+   V1.04 (2026-10-20): 붙여넣기를 형식 없이 읽기(날짜 기준으로 묶어 금액·가맹점 찾기, 연도 없는 날짜·취소 상계) + 반영 전 미리보기 */
 const APP_NAME    = '업무허브';
-const APP_VERSION = '1.03';
+const APP_VERSION = '1.04';
 const BUILD_DATE  = '2026-10-20';
 
 /* 예전 주소(WORK/#log 등)로 들어오면 업무일지로 */
@@ -126,9 +129,16 @@ $('file').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; if(!
   try{ const {tx,rows}=await readCardFile(f); afterImport(importCore(tx,f.name,rows)); }catch(err){ toast('⚠ '+(err.message||'파일을 읽지 못했습니다')); } };
 function openP(){ $('pOv').classList.add('on'); setTimeout(()=>$('pText').focus(),150); }
 function closeP(){ $('pOv').classList.remove('on'); }
-$('pGo').onclick=()=>{ const rows=textRows($('pText').value||''), tx=rowsToCardTx(rows);
-  if(!tx.length){ toast('⚠ 날짜·가맹점·금액이 있는 줄이 없습니다'); return; }
-  closeP(); $('pText').value='';
+function pPreview(){        // 붙여넣는 즉시 읽은 결과를 보여주고, 확인 후 반영
+  const t=$('pText').value||'', r=t.trim()?pasteTx(t):{tx:[]}, n=r.tx.length;
+  $('pGo').textContent=n?`${n}건 반영하기`:'읽고 반영하기';
+  $('pPrev').innerHTML=!t.trim()?'':n?`<b>${n}건</b> 읽음 · 합계 <b class="num">${fmt(r.tx.reduce((s,x)=>s+x.v,0))}원</b> — 가맹점·금액이 맞는지 확인하세요<div class="pl">`+r.tx.slice(0,40).map(x=>`<div><span class="num">${x.k.slice(5).replace('-','/')}${x.tm?' '+x.tm:''}</span> ${escH(x.m)} <b class="num">${fmt(x.v)}</b></div>`).join('')+(n>40?`<div>… 외 ${n-40}건</div>`:'')+'</div>':'⚠ 날짜와 금액을 찾지 못했습니다. 날짜(예: 2026.09.09 · 9/9 · 9월 9일)와 금액(예: 16,000원)이 들어간 부분을 함께 복사하세요.';
+  return r;
+}
+let pT=0; $('pText').addEventListener('input',()=>{ clearTimeout(pT); pT=setTimeout(pPreview,250); });
+$('pGo').onclick=()=>{ const {tx,rows}=pPreview();
+  if(!tx.length){ toast('⚠ 날짜·가맹점·금액을 찾지 못했습니다'); return; }
+  closeP(); $('pText').value=''; pPreview();
   afterImport(importCore(tx,'붙여넣기 '+new Date().toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}),rows)); };
 $('pCancel').onclick=closeP;
 $('pOv').onclick=e=>{ if(e.target.id==='pOv') closeP(); };
