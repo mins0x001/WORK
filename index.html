@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>업무허브 V1.02 (2026-10-20)</title>
+<title>업무허브 V1.03 (2026-10-20)</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
@@ -75,7 +75,7 @@ textarea{width:100%;min-height:160px;border-radius:12px;border:1.5px solid var(-
 </main>
 <div class="ov" id="pOv"><div class="sheet">
   <h3>📋 복사한 내역 붙여넣기</h3>
-  <div class="sub">카드사 앱·홈페이지의 이용내역 표를 복사해 붙여넣으세요. 한 줄에 날짜 · 시각 · 가맹점 · 금액이 있으면 됩니다.</div>
+  <div class="sub">카드사 앱·홈페이지의 이용내역 표를 복사해 붙여넣으세요. 한 줄에 날짜 · 시각 · 가맹점 · 금액이 있으면 됩니다. 카드사 <b>앱 화면</b>(가맹점 → 금액 → 날짜 줄)을 그대로 복사해도 됩니다.</div>
   <textarea id="pText" spellcheck="false" placeholder="2026.08.24	17:32:05	선단IC주유소	242,459	일시불"></textarea>
   <button class="btn" type="button" id="pGo">읽고 반영하기</button>
   <button class="btn line" type="button" id="pCancel">닫기</button>
@@ -88,9 +88,10 @@ textarea{width:100%;min-height:160px;border-radius:12px;border:1.5px solid var(-
 /* ================= 버전 정보 (하드코딩) =================
    V1.00 (2026-10-18): 업무허브 — 카드 엑셀·붙여넣기 한 곳에서 올리기(가계부 + 업무일지 자동 반영), 업무일지·가계부 이동, 이번 달 요약
    V1.01 (2026-10-18): 충전소·바이크 주유 생활비용 분류 반영, 업무일지에서 해당 비용 자동 정리
-   V1.02 (2026-10-20): 다른 화면(허브)에서 바뀐 기록을 돌아올 때 다시 읽음 — 뒤로가기·탭 전환 후 저장 시 카드 반영분이 덮어써지던 문제 수정 */
+   V1.02 (2026-10-20): 다른 화면(허브)에서 바뀐 기록을 돌아올 때 다시 읽음 — 뒤로가기·탭 전환 후 저장 시 카드 반영분이 덮어써지던 문제 수정
+   V1.03 (2026-10-20): 카드사 앱 화면 복사(가맹점 → 금액 → 날짜 줄) 붙여넣기 지원, 시각 없는 내역과 엑셀 중복 방지 */
 const APP_NAME    = '업무허브';
-const APP_VERSION = '1.02';
+const APP_VERSION = '1.03';
 const BUILD_DATE  = '2026-10-20';
 
 /* 예전 주소(WORK/#log 등)로 들어오면 업무일지로 */

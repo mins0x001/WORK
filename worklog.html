@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>업무일지 V1.10 (2026-10-20)</title>
+<title>업무일지 V1.11 (2026-10-20)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
@@ -699,9 +699,10 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
    V1.07 (2026-10-19): 사업소 → 새론 23km → 24km
    V1.08 (2026-10-20): 다른 화면(허브)에서 바뀐 기록을 돌아올 때 다시 읽음 — 뒤로가기·탭 전환 후 저장 시 카드 반영분이 덮어써지던 문제 수정
    V1.09 (2026-10-20): 충남(장안) → 장충남 (예전 이름 기록·검색도 연결)
-   V1.10 (2026-10-20): 의충남(A522) → 충남 (예전 이름 기록·검색도 연결) */
+   V1.10 (2026-10-20): 의충남(A522) → 충남 (예전 이름 기록·검색도 연결)
+   V1.11 (2026-10-20): 카드사 앱 화면 복사(가맹점 → 금액 → 날짜 줄) 붙여넣기 지원, 시각 없는 내역과 엑셀 중복 방지 */
 const APP_NAME    = '업무일지';
-const APP_VERSION = '1.10';
+const APP_VERSION = '1.11';
 const BUILD_DATE  = '2026-10-20';
 
 /* ================= 대리점 · 거리 데이터 =================
@@ -2039,7 +2040,16 @@ function decodeText(buf){
   if(t.includes('�')){ try{ t=new TextDecoder('euc-kr').decode(buf); }catch(e){} }   // 카드사 CSV는 EUC-KR인 경우가 많음
   return t.replace(/^﻿/,'');
 }
+function mobileRows(t){     // 카드사 앱 화면 복사 형식: 가맹점 줄 → 금액 줄(160,627원) → 날짜 줄(2026.09.09 본인 일시불 …)
+  const L=t.split(/\r?\n/).map(l=>l.trim()).filter(Boolean), out=[];
+  for(let i=2;i<L.length;i++){
+    const dm=L[i].match(/^(\d{4}[.\-\/]\d{1,2}[.\-\/]\d{1,2})(?:\s+(\d{1,2}:\d{2}(?::\d{2})?))?(.*)$/), am=L[i-1].match(/^(-?[\d,]+)\s*원$/);
+    if(dm&&am&&!/^-?[\d,]+\s*원$/.test(L[i-2])&&!/^\d{4}[.\-\/]/.test(L[i-2])) out.push([dm[1],dm[2]||'',L[i-2],am[1],(/취소/.test(dm[3])?'취소 ':'')+dm[3].trim()]);
+  }
+  return out;
+}
 function textRows(t){
+  if(!t.includes('\t')){ const m=mobileRows(t); if(m.length) return m; }
   return t.split(/\r?\n/).filter(l=>l.trim()).map(l=>{
     if(l.includes('\t')) return l.split('\t');
     const out=[]; let cur='', q=false;
@@ -2131,7 +2141,7 @@ function kxBuild(tx,src){
   const n=netCardTx(tx);
   n.items.forEach(it=>{
     const cdk=(data[it.k]||{}).cd||[];
-    const stored=cdk.find(e=>e.id===it.id)||cdk.find(e=>e.m===it.m&&e.v===it.v&&(e.tm||'')===(it.tm||''));   // 파일·붙여넣기를 섞어 올려도 같은 결제는 하나로
+    const stored=cdk.find(e=>e.id===it.id)||cdk.find(e=>e.m===it.m&&e.v===it.v&&(!e.tm||!it.tm||e.tm===it.tm));   // 파일·붙여넣기를 섞어 올려도 같은 결제는 하나로
     if(stored&&stored.id!==it.id) it.id=stored.id;
     if(stored&&stored.v===it.v){ it.dup=true; it.c=stored.c; return; }
     if(stored){ it.c=stored.c; it.upd=true; it.def=stored.c; return; }        // 부분취소 등으로 금액이 바뀐 결제

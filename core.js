@@ -4,7 +4,7 @@
    - 분류(생활·업무·기타비용 · 세부 · 가게 묶음), 고정지출
    - 동기화: GitHub 비공개 Gist의 expenses.json + worklog.json을 한 번에 합치고 올림 (syncNow)
    각 화면은 uiSync(state) · uiChanged() 두 함수를 정의해 동기화 상태를 그립니다.
-   CORE V1.02 (2026-10-20) */
+   CORE V1.03 (2026-10-20) */
 const CARD_CATS={fuel:{label:'주유',ic:'⛽'},urea:{label:'요소수',ic:'💧'},toll:{label:'통행료',ic:'🛣️'}};
 /* ---- 공통 ---- */
 const $=id=>document.getElementById(id);
@@ -98,7 +98,16 @@ function decodeText(buf){
   if(t.includes('�')){ try{ t=new TextDecoder('euc-kr').decode(buf); }catch(e){} }   // 카드사 CSV는 EUC-KR인 경우가 많음
   return t.replace(/^﻿/,'');
 }
+function mobileRows(t){     // 카드사 앱 화면 복사 형식: 가맹점 줄 → 금액 줄(160,627원) → 날짜 줄(2026.09.09 본인 일시불 …)
+  const L=t.split(/\r?\n/).map(l=>l.trim()).filter(Boolean), out=[];
+  for(let i=2;i<L.length;i++){
+    const dm=L[i].match(/^(\d{4}[.\-\/]\d{1,2}[.\-\/]\d{1,2})(?:\s+(\d{1,2}:\d{2}(?::\d{2})?))?(.*)$/), am=L[i-1].match(/^(-?[\d,]+)\s*원$/);
+    if(dm&&am&&!/^-?[\d,]+\s*원$/.test(L[i-2])&&!/^\d{4}[.\-\/]/.test(L[i-2])) out.push([dm[1],dm[2]||'',L[i-2],am[1],(/취소/.test(dm[3])?'취소 ':'')+dm[3].trim()]);
+  }
+  return out;
+}
 function textRows(t){
+  if(!t.includes('\t')){ const m=mobileRows(t); if(m.length) return m; }
   return t.split(/\r?\n/).filter(l=>l.trim()).map(l=>{
     if(l.includes('\t')) return l.split('\t');
     const out=[]; let cur='', q=false;
@@ -297,7 +306,7 @@ function applyWork(items){            // 업무일지(worklog.data.v2) 날짜별
   items.forEach(it=>{ const c=classifyCard(it.m,it.v,big(it.k)).c; if(c) (byDay[it.k]=byDay[it.k]||[]).push(Object.assign({c},it)); });
   Object.keys(byDay).forEach(k=>{
     const rec=Object.assign({},W[k]||{}), old=rec.cd||[];
-    const adds=byDay[k].filter(it=>!old.some(e=>e.id===it.id||(e.m===it.m&&e.v===it.v&&(e.tm||'')===(it.tm||''))));
+    const adds=byDay[k].filter(it=>!old.some(e=>e.id===it.id||(e.m===it.m&&e.v===it.v&&(!e.tm||!it.tm||e.tm===it.tm))));
     if(!adds.length) return;
     const cd=old.concat(adds.map(it=>{ const o={id:it.id,m:it.m,v:it.v,c:it.c}; if(it.tm) o.tm=it.tm; return o; }));
     Object.keys(CARD_CATS).forEach(c=>{ const s=cd.filter(e=>e.c===c).reduce((x,e)=>x+e.v,0); if(s) rec[c]=s; });
@@ -318,13 +327,14 @@ function saveOriginal(rows,src,keys){        // 올린 엑셀·붙여넣기 원�
 function importCore(tx,src,rows){        // 엑셀·붙여넣기 → 가계부(전체 결제) + 업무일지(주유·요소수·통행료) + 원본 보관
   const n=netCardTx(tx), md=metaOf(EM), keys=[];
   saveOriginal(rows,src,keys);
-  const seen=new Set(allTx().map(r=>`${r.d}|${r.t||''}|${r.m}|${r.v}`));
+  const AT=allTx(), seen=new Set(AT.map(r=>`${r.d}|${r.t||''}|${r.m}|${r.v}`)), seenAny=new Set(AT.map(r=>`${r.d}|${r.m}|${r.v}`)), seenNoT=new Set(AT.filter(r=>!r.t).map(r=>`${r.d}|${r.m}|${r.v}`));   // 시각 없는 붙여넣기(앱 화면)와 엑셀도 같은 결제로
   let add=0,dup=0,skip=0;
   n.items.forEach(it=>{
     const key='t:'+it.id, cur=E[key];
     if(md.del[key]){ skip++; return; }                                   // 직접 지운 결제는 되살리지 않음
     if(cur){ if(cur.v!==it.v&&!cur.e){ cur.v=it.v; keys.push(key); add++; } else dup++; return; }
-    if(seen.has(`${it.k}|${it.tm||''}|${it.m}|${it.v}`)){ dup++; return; }
+    const dmv=`${it.k}|${it.m}|${it.v}`;
+    if(seen.has(`${it.k}|${it.tm||''}|${it.m}|${it.v}`)||(!it.tm&&seenAny.has(dmv))||(it.tm&&seenNoT.has(dmv))){ dup++; return; }
     E[key]={d:it.k,m:it.m,v:it.v}; if(it.tm) E[key].t=it.tm; keys.push(key); add++;
   });
   n.orphan.forEach(o=>{ const key='t:'+o.id; if(E[key]){ delete E[key]; keys.push(key); } });

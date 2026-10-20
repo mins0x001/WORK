@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>가계부 V1.06 (2026-10-20)</title>
+<title>가계부 V1.07 (2026-10-20)</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
@@ -206,9 +206,10 @@ textarea{width:100%;min-height:150px;border-radius:12px;border:1.5px solid var(-
    V1.04 (2026-10-18): WORK 저장소로 통합(WORK/expenses.html) · 카드 엑셀·붙여넣기는 업무허브에서 · 공통 코드 core.js
    V1.03 (2026-10-18): 큰 분류 3가지(생활·업무·기타비용) 자동 분류·탭해서 보기·수동 이동, 고정지출(주거비·대출 등 매달 자동 반복), 소비 패턴 간결화
    V1.05 (2026-10-18): 충전소(LPG 차량)·6만원 이하 단독 주유(바이크)는 생활비용 (같은 날 큰 주유가 있으면 요소수=업무비용)
-   V1.06 (2026-10-20): 다른 화면(허브)에서 바뀐 기록을 돌아올 때 다시 읽음 — 뒤로가기·탭 전환 후 저장 시 카드 반영분이 덮어써지던 문제 수정 */
+   V1.06 (2026-10-20): 다른 화면(허브)에서 바뀐 기록을 돌아올 때 다시 읽음 — 뒤로가기·탭 전환 후 저장 시 카드 반영분이 덮어써지던 문제 수정
+   V1.07 (2026-10-20): 카드사 앱 화면 복사(가맹점 → 금액 → 날짜 줄) 붙여넣기 지원, 시각 없는 내역과 엑셀 중복 방지 */
 const APP_NAME    = '가계부';
-const APP_VERSION = '1.06';
+const APP_VERSION = '1.07';
 const BUILD_DATE  = '2026-10-20';
 
 function uiSync(state){ renderSync(state); }      // core.js 동기화가 부르는 화면 함수
