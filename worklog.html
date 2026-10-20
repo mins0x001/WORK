@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>업무일지 V1.09 (2026-10-20)</title>
+<title>업무일지 V1.10 (2026-10-20)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
@@ -698,9 +698,10 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
    V1.06 (2026-10-18): 상단에 🏠 허브 · 가계부 › 바로가기, 충전소(LPG)·6만원 이하 단독 주유(바이크)는 업무 비용에서 제외
    V1.07 (2026-10-19): 사업소 → 새론 23km → 24km
    V1.08 (2026-10-20): 다른 화면(허브)에서 바뀐 기록을 돌아올 때 다시 읽음 — 뒤로가기·탭 전환 후 저장 시 카드 반영분이 덮어써지던 문제 수정
-   V1.09 (2026-10-20): 충남(장안) → 장충남 (예전 이름 기록·검색도 연결) */
+   V1.09 (2026-10-20): 충남(장안) → 장충남 (예전 이름 기록·검색도 연결)
+   V1.10 (2026-10-20): 의충남(A522) → 충남 (예전 이름 기록·검색도 연결) */
 const APP_NAME    = '업무일지';
-const APP_VERSION = '1.09';
+const APP_VERSION = '1.10';
 const BUILD_DATE  = '2026-10-20';
 
 /* ================= 대리점 · 거리 데이터 =================
@@ -727,7 +728,7 @@ const ROWS = [
   {"name": "우리", "codes": ["3251"], "phone": "031-844-5959", "tier": 1, "dist": null, "address": "경기 의정부시 녹양로 166"},
   {"name": "원창", "codes": ["1636"], "phone": "031-551-0581", "tier": 1, "dist": null, "address": "구리시 안골로 8"},
   {"name": "의기아", "codes": ["A969"], "phone": "031-842-5550", "tier": 1, "dist": 16.5, "address": "경기 의정부시 동일로 515"},
-  {"name": "의충남", "codes": ["A522"], "phone": "031-842-7305", "tier": 1, "dist": null, "address": ""},
+  {"name": "충남", "codes": ["A522"], "phone": "031-842-7305", "tier": 1, "dist": null, "address": ""},
   {"name": "인석", "codes": ["2244"], "phone": "031-557-2022", "tier": 1, "dist": null, "address": "구리시 안골로 24-1"},
   {"name": "장현", "codes": ["4049", "C180"], "phone": "031-572-9006", "tier": 1, "dist": null, "address": ""},
   {"name": "진원", "codes": ["2521"], "phone": "031-571-3232", "tier": 1, "dist": null, "address": "경기도 남양주시 송산로339번길 4-16"},
@@ -809,7 +810,7 @@ const DISTANCE_EDGES = [
   {"from": "양주K", "to": "우리", "km": 12, "note": ""},
   {"from": "양주K", "to": "의기아", "km": 17, "note": ""},
   {"from": "양주K", "to": "국도", "km": 15, "note": ""},
-  {"from": "양주K", "to": "의충남", "km": 14, "note": ""},
+  {"from": "양주K", "to": "충남", "km": 14, "note": ""},
   {"from": "양주K", "to": "새론", "km": 16, "note": ""},
   {"from": "사업소", "to": "대맥", "km": 19, "note": ""},
   {"from": "대맥", "to": "사업소", "km": 18, "note": ""},
@@ -818,7 +819,7 @@ const DISTANCE_EDGES = [
   {"from": "대맥", "to": "국도", "km": 15, "note": ""},
   {"from": "대맥", "to": "우리", "km": 12, "note": ""},
   {"from": "대맥", "to": "의기아", "km": 17, "note": ""},
-  {"from": "대맥", "to": "의충남", "km": 14, "note": ""},
+  {"from": "대맥", "to": "충남", "km": 14, "note": ""},
   {"from": "대맥", "to": "새론", "km": 16, "note": ""},
   {"from": "사업소", "to": "성원", "km": 16, "note": ""},
   {"from": "성원", "to": "국도", "km": 17, "note": ""},
@@ -830,27 +831,27 @@ const DISTANCE_EDGES = [
   {"from": "삼주", "to": "양주K", "km": 13, "note": ""},
   {"from": "삼주", "to": "새론", "km": 16, "note": ""},
   {"from": "삼주", "to": "우리", "km": 13, "note": ""},
-  {"from": "삼주", "to": "의충남", "km": 14, "note": ""},
+  {"from": "삼주", "to": "충남", "km": 14, "note": ""},
   {"from": "삼주", "to": "국도", "km": 15, "note": ""},
   {"from": "삼주", "to": "의기아", "km": 17, "note": ""},
   {"from": "사업소", "to": "우리", "km": 21, "note": ""},
   {"from": "우리", "to": "의기아", "km": 5, "note": ""},
   {"from": "우리", "to": "대맥", "km": 13, "note": ""},
   {"from": "우리", "to": "양주K", "km": 13, "note": ""},
-  {"from": "우리", "to": "의충남", "km": 4, "note": ""},
+  {"from": "우리", "to": "충남", "km": 4, "note": ""},
   {"from": "우리", "to": "삼주", "km": 13, "note": ""},
   {"from": "우리", "to": "국도", "km": 5, "note": ""},
   {"from": "우리", "to": "새론", "km": 6, "note": ""},
   {"from": "우리", "to": "상계", "km": 15, "note": ""},
-  {"from": "사업소", "to": "의충남", "km": 18, "note": ""},
-  {"from": "의충남", "to": "의기아", "km": 3, "note": ""},
-  {"from": "의충남", "to": "우리", "km": 4, "note": ""},
-  {"from": "의충남", "to": "새론", "km": 2, "note": ""},
-  {"from": "의충남", "to": "국도", "km": 1, "note": ""},
-  {"from": "의충남", "to": "대맥", "km": 14, "note": ""},
-  {"from": "의충남", "to": "양주K", "km": 14, "note": ""},
+  {"from": "사업소", "to": "충남", "km": 18, "note": ""},
+  {"from": "충남", "to": "의기아", "km": 3, "note": ""},
+  {"from": "충남", "to": "우리", "km": 4, "note": ""},
+  {"from": "충남", "to": "새론", "km": 2, "note": ""},
+  {"from": "충남", "to": "국도", "km": 1, "note": ""},
+  {"from": "충남", "to": "대맥", "km": 14, "note": ""},
+  {"from": "충남", "to": "양주K", "km": 14, "note": ""},
   {"from": "사업소", "to": "새론", "km": 24, "note": ""},
-  {"from": "새론", "to": "의충남", "km": 2, "note": ""},
+  {"from": "새론", "to": "충남", "km": 2, "note": ""},
   {"from": "새론", "to": "의기아", "km": 2, "note": ""},
   {"from": "새론", "to": "우리", "km": 6, "note": ""},
   {"from": "새론", "to": "상계", "km": 9, "note": ""},
@@ -862,7 +863,7 @@ const DISTANCE_EDGES = [
   {"from": "사업소", "to": "국도", "km": 20, "note": ""},
   {"from": "국도", "to": "우리", "km": 5, "note": ""},
   {"from": "국도", "to": "의기아", "km": 2, "note": ""},
-  {"from": "국도", "to": "의충남", "km": 2, "note": ""},
+  {"from": "국도", "to": "충남", "km": 2, "note": ""},
   {"from": "국도", "to": "양주H", "km": 15, "note": ""},
   {"from": "국도", "to": "양주K", "km": 15, "note": ""},
   {"from": "국도", "to": "인석", "km": 25, "note": ""},
@@ -1063,7 +1064,7 @@ const NUMF=['odo','fuel','toll','urea'];
 const ROUNDS=['1','2','3'];
 const CARD_CATS={fuel:{label:'주유',ic:'⛽'},urea:{label:'요소수',ic:'💧'},toll:{label:'통행료',ic:'🛣️'}};   // 카드 결제 분류 = 비용 항목 이름
 const MAX_STOPS=40;
-const RENAMED={'충남(의정부)':'의충남','충남(장안)':'장충남','C동우':'동우'};      // 이름이 바뀐 대리점: 예전 이름으로 저장된 회전 기록·검색어를 새 이름으로
+const RENAMED={'충남(의정부)':'충남','의충남':'충남','충남(장안)':'장충남','C동우':'동우'};      // 이름이 바뀐 대리점: 예전 이름으로 저장된 회전 기록·검색어를 새 이름으로
 
 const lsRaw=k=>{ try{ return localStorage.getItem(k); }catch(e){ return null; } };
 const ls={
