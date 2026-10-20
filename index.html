@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>업무허브 V1.04 (2026-10-20)</title>
+<title>업무허브 V1.05 (2026-10-20)</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
@@ -92,9 +92,10 @@ textarea{width:100%;min-height:160px;border-radius:12px;border:1.5px solid var(-
    V1.01 (2026-10-18): 충전소·바이크 주유 생활비용 분류 반영, 업무일지에서 해당 비용 자동 정리
    V1.02 (2026-10-20): 다른 화면(허브)에서 바뀐 기록을 돌아올 때 다시 읽음 — 뒤로가기·탭 전환 후 저장 시 카드 반영분이 덮어써지던 문제 수정
    V1.03 (2026-10-20): 카드사 앱 화면 복사(가맹점 → 금액 → 날짜 줄) 붙여넣기 지원, 시각 없는 내역과 엑셀 중복 방지
-   V1.04 (2026-10-20): 붙여넣기를 형식 없이 읽기(날짜 기준으로 묶어 금액·가맹점 찾기, 연도 없는 날짜·취소 상계) + 반영 전 미리보기 */
+   V1.04 (2026-10-20): 붙여넣기를 형식 없이 읽기(날짜 기준으로 묶어 금액·가맹점 찾기, 연도 없는 날짜·취소 상계) + 반영 전 미리보기
+   V1.05 (2026-10-20): 엑셀 읽기 강화(머리글 이름 다양화·두 줄 머리글·모든 시트·날짜+시각 한 칸·합계 줄 제외) + 중복 확인을 한 건씩 짝짓기(가게 이름 띄어쓰기 무시, 같은 날 2번 결제 보존) + 못 읽은 줄 알림 */
 const APP_NAME    = '업무허브';
-const APP_VERSION = '1.04';
+const APP_VERSION = '1.05';
 const BUILD_DATE  = '2026-10-20';
 
 /* 예전 주소(WORK/#log 등)로 들어오면 업무일지로 */
@@ -117,7 +118,7 @@ function renderExp(){
 }
 function renderImp(){
   const L=rj('expenses.lastImport',null);
-  $('impRes').innerHTML=L?`마지막 반영: <b>${escH(L.src)}</b> · ${L.from.slice(5).replace('-','/')}~${L.to.slice(5).replace('-','/')} · 새 결제 <b>${L.add}건</b>${L.dup?` · 중복 ${L.dup}건 제외`:''} · 업무일지 <b>${L.days}일</b><br><a href="expenses.html">가계부에서 보기 ›</a><a href="worklog.html#log">업무일지에서 보기 ›</a>`
+  $('impRes').innerHTML=L?`마지막 반영: <b>${escH(L.src)}</b> · ${L.from.slice(5).replace('-','/')}~${L.to.slice(5).replace('-','/')} · 읽음 <b>${L.read??L.add+L.dup}건</b> → 새 결제 <b>${L.add}건</b>${L.dup?` · 이미 있음 ${L.dup}건`:''}${L.skip?` · 지운 결제 ${L.skip}건`:''}${L.miss?` · <b style="color:var(--amber)">⚠ 못 읽은 줄 ${L.miss}개</b> (원본 엑셀 확인)`:''} · 업무일지 <b>${L.days}일</b><br><a href="expenses.html">가계부에서 보기 ›</a><a href="worklog.html#log">업무일지에서 보기 ›</a>`
     :'삼성카드 앱 → 이용내역 → <b>엑셀 저장</b>한 파일이나 복사한 내역을 올리면, 모든 결제는 가계부에, 주유·요소수·통행료는 업무일지 비용에 들어갑니다. 원본도 평생 보관됩니다.';
 }
 function renderAll(){ E=rj(EK,E); renderImp(); renderLog(); renderExp(); uiSync(); }
@@ -126,7 +127,7 @@ function renderAll(){ E=rj(EK,E); renderImp(); renderLog(); renderExp(); uiSync(
 function afterImport(res){ toast(importMsg(res)); renderAll(); syncNow(); }
 document.addEventListener('click',e=>{ if(e.target.closest('[data-imp]')) $('file').click(); if(e.target.closest('[data-paste]')) openP(); });
 $('file').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; if(!f) return;
-  try{ const {tx,rows}=await readCardFile(f); afterImport(importCore(tx,f.name,rows)); }catch(err){ toast('⚠ '+(err.message||'파일을 읽지 못했습니다')); } };
+  try{ const {tx,rows,miss}=await readCardFile(f); afterImport(importCore(tx,f.name,rows,miss)); }catch(err){ toast('⚠ '+(err.message||'파일을 읽지 못했습니다')); } };
 function openP(){ $('pOv').classList.add('on'); setTimeout(()=>$('pText').focus(),150); }
 function closeP(){ $('pOv').classList.remove('on'); }
 function pPreview(){        // 붙여넣는 즉시 읽은 결과를 보여주고, 확인 후 반영

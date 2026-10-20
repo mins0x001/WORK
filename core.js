@@ -4,7 +4,7 @@
    - 분류(생활·업무·기타비용 · 세부 · 가게 묶음), 고정지출
    - 동기화: GitHub 비공개 Gist의 expenses.json + worklog.json을 한 번에 합치고 올림 (syncNow)
    각 화면은 uiSync(state) · uiChanged() 두 함수를 정의해 동기화 상태를 그립니다.
-   CORE V1.04 (2026-10-20) */
+   CORE V1.05 (2026-10-20) */
 const CARD_CATS={fuel:{label:'주유',ic:'⛽'},urea:{label:'요소수',ic:'💧'},toll:{label:'통행료',ic:'🛣️'}};
 /* ---- 공통 ---- */
 const $=id=>document.getElementById(id);
@@ -111,32 +111,37 @@ function textRows(t){
 }
 /* ---- 행 → 결제 ---- */
 function parseCardDate(x){
-  if(typeof x==='number'&&x>20000&&x<80000){ const d=new Date(Date.UTC(1899,11,30)+Math.round(x)*864e5); return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}`; }
+  if(typeof x==='number'&&x>20000&&x<80000){ const d=new Date(Date.UTC(1899,11,30)+Math.floor(x)*864e5); return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}`; }
   const s=String(x??'').trim();
   const m=s.match(/(20\d{2})\s*[.\-/년]\s*(\d{1,2})\s*[.\-/월]\s*(\d{1,2})/)||s.match(/^(20\d{2})(\d{2})(\d{2})$/);
   if(!m) return null;
   const mo=+m[2], da=+m[3]; if(mo<1||mo>12||da<1||da>31) return null;
   return `${m[1]}-${pad(mo)}-${pad(da)}`;
 }
-function parseCardTime(x){ const m=String(x??'').match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/); return m?{hm:`${pad(+m[1])}:${m[2]}`,full:`${pad(+m[1])}:${m[2]}:${m[3]||'00'}`}:{hm:'',full:''}; }
+function parseCardTime(x){
+  if(typeof x==='number'){ const f=x%1; if(!(f>0)) return {hm:'',full:''}; const t=Math.round(f*86400), h=Math.floor(t/3600)%24, mi=Math.floor(t%3600/60), se=t%60; return {hm:`${pad(h)}:${pad(mi)}`,full:`${pad(h)}:${pad(mi)}:${pad(se)}`}; }   // 엑셀 시각(소수)
+  const m=String(x??'').match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/); return m?{hm:`${pad(+m[1])}:${m[2]}`,full:`${pad(+m[1])}:${m[2]}:${m[3]||'00'}`}:{hm:'',full:''}; }
 function parseCardAmt(x){
   if(typeof x==='number') return Number.isFinite(x)?x:null;
   const s=String(x??'').replace(/[,원\s]/g,'');
   return /^-?\d+(\.\d+)?$/.test(s)?Number(s):null;
 }
-function cardHeaderMap(row){
-  const m={};
-  row.forEach((c,i)=>{ const s=String(c??'').replace(/\s/g,''); if(!s) return;
-    if(m.ap===undefined&&/승인번호/.test(s)) m.ap=i;
-    else if(m.cancel===undefined&&/취소/.test(s)) m.cancel=i;
-    else if(m.time===undefined&&/(승인|이용|거래)?(시각|시간)/.test(s)&&!/일자/.test(s)) m.time=i;
-    else if(m.date===undefined&&/승인일자|이용일자|이용일|거래일자|거래일|승인일/.test(s)) m.date=i;
-    else if(m.m===undefined&&/가맹점/.test(s)) m.m=i;
-    else if(m.v===undefined&&/금액/.test(s)&&!/합계/.test(s)) m.v=i;
+function cardHeaderMap(row){     // 머리글 이름이 카드사마다 달라도 찾음 (이용일·거래일·사용일 / 가맹점·이용처·상호 / 이용금액·결제금액…)
+  const m={}, vs=[];
+  row.forEach((c,i)=>{ const s=String(c??'').replace(/\s/g,''); if(!s||s.length>16||/^[\d,.\-:\/]+$/.test(s)) return;
+    if(m.ap===undefined&&/승인번호|승인No/i.test(s)) m.ap=i;
+    else if(m.time===undefined&&/(시각|시간)$/.test(s)&&!/일자|일시/.test(s)) m.time=i;
+    else if(m.date===undefined&&(/(승인|이용|거래|사용|매출|결제)(일자|일시|일|날짜)$/.test(s)||/^(일자|날짜|일시)$/.test(s))) m.date=i;
+    else if(m.m===undefined&&/가맹점|이용처|사용처|상호|이용하신곳|거래처|사용내역|이용내역/.test(s)) m.m=i;
+    else if(/금액|이용액|결제액|승인액/.test(s)&&!/합계|할인|적립|수수료|잔액|포인트|외화|US|\$|달러|현지|이자|예정|할부잔|원금잔/.test(s)) vs.push([i,/승인금액|이용금액|결제금액|거래금액|매출금액|승인액|이용액/.test(s)?3:/청구/.test(s)?1:2]);
+    else if(m.cancel===undefined&&/취소|상태/.test(s)) m.cancel=i;
   });
+  if(vs.length){ vs.sort((a,b)=>b[1]-a[1]||a[0]-b[0]); m.v=vs[0][0]; }
   return m;
 }
+const normM=m=>String(m||'').replace(/\(주\)|㈜|주식회사|\s|[()\[\].,·\-_'"]/g,'').toUpperCase();   // 띄어쓰기·(주) 달라도 같은 가게
 const CARD_SKIP=/^(일시불|할부|본인|가족|-|국내|해외|전체취소|부분취소)$/;
+const CARD_SUM=/^(합\s*계|소\s*계|총\s*계|누\s*계|총\s*이용.*|이용\s*합계|.*합계|일시불\s*\+\s*할부.*|할부\s*\+\s*일시불.*)$/;
 function cardRowLoose(r){
   const cells=r.map(x=>typeof x==='number'?x:String(x??'').trim());
   const di=cells.findIndex(c=>parseCardDate(c)); if(di<0) return null;
@@ -149,23 +154,43 @@ function cardRowLoose(r){
   let v=parseCardAmt(cells[vi]); if(cells.some(c=>/취소/.test(String(c)))&&v>0) v=-v;
   return {k:parseCardDate(cells[di]),tm:t.hm,ts:t.full,m:cells[mi],v,ap:''};
 }
+function findHeader(rows){        // 머리글 줄 찾기 (두 줄로 나뉜 머리글도 합쳐서)
+  const ok=m=>m.date!==undefined&&m.m!==undefined&&m.v!==undefined;
+  for(let i=0;i<Math.min(rows.length,40);i++){
+    let m=cardHeaderMap(rows[i]||[]); if(ok(m)) return {map:m,hi:i};
+    const a=rows[i]||[], b=rows[i+1]||[]; if(!a.length||!b.length) continue;
+    m=cardHeaderMap(Array.from({length:Math.max(a.length,b.length)},(_,k)=>`${a[k]??''}${b[k]??''}`)); if(ok(m)) return {map:m,hi:i+1};
+  }
+  return {map:null,hi:-1};
+}
 function rowsToCardTx(rows){
-  let map=null, hi=-1;
-  for(let i=0;i<Math.min(rows.length,20);i++){ const m=cardHeaderMap(rows[i]||[]); if(m.date!==undefined&&m.m!==undefined&&m.v!==undefined){ map=m; hi=i; break; } }
-  const tx=[];
+  const {map,hi}=findHeader(rows), tx=[], cnt={};
   for(let i=hi+1;i<rows.length;i++){
     const r=rows[i]||[]; let t=null;
     if(map){
       const k=parseCardDate(r[map.date]), v=parseCardAmt(r[map.v]), m=String(r[map.m]??'').trim();
-      if(k&&v!==null&&m){
-        const tt=parseCardTime(map.time!==undefined?r[map.time]:'');
+      if(k&&v!==null&&v!==0&&m&&!CARD_SUM.test(m)){
+        const tt=parseCardTime(map.time!==undefined?r[map.time]:r[map.date]);   // 시각 칸이 없으면 날짜 칸 안의 시각(2026-08-24 17:32)
         t={k,tm:tt.hm,ts:tt.full,m,v,ap:map.ap!==undefined?String(r[map.ap]??'').trim():''};
         if(map.cancel!==undefined&&/취소/.test(String(r[map.cancel]??''))&&t.v>0) t.v=-t.v;
       }
     } else t=cardRowLoose(r);
-    if(t) tx.push(t);
+    if(t&&CARD_SUM.test(t.m)) t=null;
+    if(t){ if(!t.ap&&!t.ts){ const ck=`${t.k}|${t.m}|${Math.abs(t.v)}|${t.v<0?'-':'+'}`; cnt[ck]=(cnt[ck]||0)+1; t.ts=`~${Math.abs(t.v)}~${cnt[ck]}`; }   // 시각·승인번호 없는 같은 결제 2번도 따로
+      tx.push(t); }
   }
+  tx.filter(t=>t.v<0&&!t.ap).forEach(c=>{ const o=tx.find(t=>t.v===-c.v&&!t.ap&&!t.pair&&normM(t.m)===normM(c.m)&&t.k<=c.k); if(o){ o.pair=1; c.k=o.k; c.ts=o.ts; c.m=o.m; } });   // 승인번호 없는 취소 → 같은 가게·같은 금액 승인과 상계
+  if(tx.length>2){ const tot=tx.reduce((x,t)=>x+t.v,0); for(let i=tx.length-1;i>=0;i--) if(tx[i].v>0&&tx[i].v*2===tot){ tx.splice(i,1); break; } }   // 나머지 합과 같은 금액 = 합계 줄
   return tx;
+}
+/* 데이터처럼 보이는데(날짜+금액) 결제로 못 읽은 줄 → '확인 필요'로 알려줌 */
+function missedRows(rows,tx){
+  const {hi}=findHeader(rows); let n=0;
+  for(let i=hi+1;i<rows.length;i++){ const r=rows[i]||[];
+    const hasD=r.some(c=>parseCardDate(c)), hasV=r.some(c=>typeof c==='number'?Math.abs(c)>=100&&!(c>20000&&c<80000&&parseCardDate(c)):/\d{1,3}(,\d{3})+|\d+\s*원/.test(String(c??'')));
+    if(hasD&&hasV&&!r.some(c=>CARD_SUM.test(String(c??'').trim()))) n++; }
+  const m=Math.max(0,n-tx.length);
+  return m;
 }
 /* ---- 형식 없는 붙여넣기: 줄·칸 모양과 상관없이 '날짜'를 기준으로 한 건씩 묶고, 그 안에서 금액·가맹점을 찾음 ----
    예) 앱 화면(가맹점 → 금액 → 날짜 줄), 한 줄 표, 날짜가 먼저 오는 목록, 연도 없는 날짜(10.15 · 10월 15일)도 OK */
@@ -340,7 +365,7 @@ function applyWork(items){            // 업무일지(worklog.data.v2) 날짜별
   items.forEach(it=>{ const c=classifyCard(it.m,it.v,big(it.k)).c; if(c) (byDay[it.k]=byDay[it.k]||[]).push(Object.assign({c},it)); });
   Object.keys(byDay).forEach(k=>{
     const rec=Object.assign({},W[k]||{}), old=rec.cd||[];
-    const adds=byDay[k].filter(it=>!old.some(e=>e.id===it.id||(e.m===it.m&&e.v===it.v&&(!e.tm||!it.tm||e.tm===it.tm))));
+    const adds=byDay[k].filter(it=>!old.some(e=>e.id===it.id||(normM(e.m)===normM(it.m)&&e.v===it.v&&(!e.tm||!it.tm||e.tm===it.tm))));
     if(!adds.length) return;
     const cd=old.concat(adds.map(it=>{ const o={id:it.id,m:it.m,v:it.v,c:it.c}; if(it.tm) o.tm=it.tm; return o; }));
     Object.keys(CARD_CATS).forEach(c=>{ const s=cd.filter(e=>e.c===c).reduce((x,e)=>x+e.v,0); if(s) rec[c]=s; });
@@ -358,35 +383,45 @@ function saveOriginal(rows,src,keys){        // 올린 엑셀·붙여넣기 원�
   const fk='f:'+(h>>>0).toString(36)+js.length.toString(36);
   if(!E[fk]){ E[fk]={n:src,at:new Date().toISOString(),rows:R}; keys.push(fk); }
 }
-function importCore(tx,src,rows){        // 엑셀·붙여넣기 → 가계부(전체 결제) + 업무일지(주유·요소수·통행료) + 원본 보관
+function importCore(tx,src,rows,miss){        // 엑셀·붙여넣기 → 가계부(전체 결제) + 업무일지(주유·요소수·통행료) + 원본 보관
   const n=netCardTx(tx), md=metaOf(EM), keys=[];
   saveOriginal(rows,src,keys);
-  const AT=allTx(), seen=new Set(AT.map(r=>`${r.d}|${r.t||''}|${r.m}|${r.v}`)), seenAny=new Set(AT.map(r=>`${r.d}|${r.m}|${r.v}`)), seenNoT=new Set(AT.filter(r=>!r.t).map(r=>`${r.d}|${r.m}|${r.v}`));   // 시각 없는 붙여넣기(앱 화면)와 엑셀도 같은 결제로
+  /* 중복 확인: 같은 날·같은 가게(띄어쓰기·(주) 무시)·같은 금액인 기존 결제를 '한 건씩' 짝지음
+     → 시각이 같거나 한쪽에 시각이 없으면 같은 결제, 둘 다 시각이 있는데 다르면 다른 결제(같은 날 2번 결제도 빠지지 않음) */
+  const ids=new Set(n.items.map(it=>'t:'+it.id)), pool={}, pk=r=>`${r.d}|${normM(r.m)}|${r.v}`;
+  Object.keys(E).forEach(k=>{ const r=E[k]; if(k.startsWith('t:')&&r&&r.d&&!ids.has(k)) (pool[pk(r)]=pool[pk(r)]||[]).push(k); });
+  const claim=it=>{ const L=pool[pk({d:it.k,m:it.m,v:it.v})]; if(!L||!L.length) return null;
+    let i=L.findIndex(k=>E[k].t&&it.tm&&E[k].t===it.tm); if(i<0) i=L.findIndex(k=>!E[k].t||!it.tm); if(i<0) return null;
+    return L.splice(i,1)[0]; };
   let add=0,dup=0,skip=0;
   n.items.forEach(it=>{
     const key='t:'+it.id, cur=E[key];
     if(md.del[key]){ skip++; return; }                                   // 직접 지운 결제는 되살리지 않음
     if(cur){ if(cur.v!==it.v&&!cur.e){ cur.v=it.v; keys.push(key); add++; } else dup++; return; }
-    const dmv=`${it.k}|${it.m}|${it.v}`;
-    if(seen.has(`${it.k}|${it.tm||''}|${it.m}|${it.v}`)||(!it.tm&&seenAny.has(dmv))||(it.tm&&seenNoT.has(dmv))){ dup++; return; }
+    const same=claim(it);
+    if(same){ dup++; if(it.tm&&!E[same].t){ E[same].t=it.tm; keys.push(same); } return; }      // 시각 없던 기록에 시각 채움
     E[key]={d:it.k,m:it.m,v:it.v}; if(it.tm) E[key].t=it.tm; keys.push(key); add++;
   });
   n.orphan.forEach(o=>{ const key='t:'+o.id; if(E[key]){ delete E[key]; keys.push(key); } });
   if(keys.length) touch(keys);
   const days=applyWork(n.items);
   const ks=n.items.map(i=>i.k).sort();
-  const res={src,add,dup,skip,cancel:n.canceled,days,from:ks[0]||'',to:ks[ks.length-1]||'',at:Date.now()};
+  const res={src,read:n.items.length,add,dup,skip,cancel:n.canceled,miss:miss||0,days,from:ks[0]||'',to:ks[ks.length-1]||'',at:Date.now()};
   ls.set('expenses.lastImport',JSON.stringify(res));
   return res;
 }
-const importMsg=r=>`✅ 새 결제 ${r.add}건 · 업무일지 ${r.days}일 반영${r.dup?` · 중복 ${r.dup}건 제외`:''}${r.cancel?` · 취소 ${r.cancel}건 상계`:''}`;
+const importMsg=r=>`✅ 읽음 ${r.read}건 → 새 결제 ${r.add}건 · 업무일지 ${r.days}일${r.dup?` · 이미 있음 ${r.dup}건`:''}${r.skip?` · 지운 결제 ${r.skip}건`:''}${r.cancel?` · 취소 ${r.cancel}건 상계`:''}${r.miss?` · ⚠ 못 읽은 줄 ${r.miss}개`:''}`;
 async function readCardFile(f){             // .xlsx · .csv → {tx, rows}
     const buf=await f.arrayBuffer(), h=new Uint8Array(buf.slice(0,4)); let tx=[], rows=[];
-    if(h[0]===0x50&&h[1]===0x4B){ for(const sh of await xlsxRows(buf)){ const t=rowsToCardTx(sh); if(t.length>tx.length){ tx=t; rows=sh; } } }
+    let miss=0;
+    if(h[0]===0x50&&h[1]===0x4B){        // 모든 시트를 읽어 합침 (국내·해외 시트 등), 시트끼리 똑같은 줄은 한 번만
+      const seen=new Set();
+      for(const sh of await xlsxRows(buf)){ const t=rowsToCardTx(sh); if(!t.length) continue; miss+=missedRows(sh,t);
+        t.forEach(x=>{ const id=[x.k,x.ts,x.m,x.v,x.ap].join('|'); if(!seen.has(id)){ seen.add(id); tx.push(x); } }); rows=rows.concat(rows.length?[[]]:[],sh); } }
     else if(h[0]===0xD0&&h[1]===0xCF) throw new Error('예전 엑셀(.xls)입니다. .xlsx로 저장하거나 복사해 붙여넣어 주세요');
-    else { rows=textRows(decodeText(buf)); tx=rowsToCardTx(rows); }
-    if(!tx.length) throw new Error('결제 내역을 찾지 못했습니다');
-    return {tx,rows};
+    else { const txt=decodeText(buf); rows=textRows(txt); tx=rowsToCardTx(rows); const fz=fuzzyCardTx(txt); if(fz.length>tx.length) tx=fz; else miss=missedRows(rows,tx); }
+    if(!tx.length) throw new Error('결제 내역을 찾지 못했습니다 (날짜·가맹점·금액 칸이 있는지 확인)');
+    return {tx,rows,miss};
 }
 /* ================= ☁️ 동기화 (업무일지와 같은 GitHub 비공개 Gist · 토큰 공유) =================
    한 번 읽어서 expenses.json(가계부)과 worklog.json(업무일지)을 함께 합치고, 바뀐 파일만 한 번에 올림.

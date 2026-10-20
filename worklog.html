@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>업무일지 V1.12 (2026-10-20)</title>
+<title>업무일지 V1.13 (2026-10-20)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
@@ -701,9 +701,10 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
    V1.09 (2026-10-20): 충남(장안) → 장충남 (예전 이름 기록·검색도 연결)
    V1.10 (2026-10-20): 의충남(A522) → 충남 (예전 이름 기록·검색도 연결)
    V1.11 (2026-10-20): 카드사 앱 화면 복사(가맹점 → 금액 → 날짜 줄) 붙여넣기 지원, 시각 없는 내역과 엑셀 중복 방지
-   V1.12 (2026-10-20): 붙여넣기를 형식 없이 읽기(날짜 기준으로 묶어 금액·가맹점 찾기, 연도 없는 날짜·취소 상계) + 반영 전 미리보기 */
+   V1.12 (2026-10-20): 붙여넣기를 형식 없이 읽기(날짜 기준으로 묶어 금액·가맹점 찾기, 연도 없는 날짜·취소 상계) + 반영 전 미리보기
+   V1.13 (2026-10-20): 엑셀 읽기 강화(머리글 이름 다양화·두 줄 머리글·모든 시트·날짜+시각 한 칸·합계 줄 제외) + 중복 확인을 한 건씩 짝짓기(가게 이름 띄어쓰기 무시, 같은 날 2번 결제 보존) + 못 읽은 줄 알림 */
 const APP_NAME    = '업무일지';
-const APP_VERSION = '1.12';
+const APP_VERSION = '1.13';
 const BUILD_DATE  = '2026-10-20';
 
 /* ================= 대리점 · 거리 데이터 =================
@@ -2054,32 +2055,37 @@ function textRows(t){
 }
 /* ---- 행 → 결제 ---- */
 function parseCardDate(x){
-  if(typeof x==='number'&&x>20000&&x<80000){ const d=new Date(Date.UTC(1899,11,30)+Math.round(x)*864e5); return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}`; }
+  if(typeof x==='number'&&x>20000&&x<80000){ const d=new Date(Date.UTC(1899,11,30)+Math.floor(x)*864e5); return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}`; }
   const s=String(x??'').trim();
   const m=s.match(/(20\d{2})\s*[.\-/년]\s*(\d{1,2})\s*[.\-/월]\s*(\d{1,2})/)||s.match(/^(20\d{2})(\d{2})(\d{2})$/);
   if(!m) return null;
   const mo=+m[2], da=+m[3]; if(mo<1||mo>12||da<1||da>31) return null;
   return `${m[1]}-${pad(mo)}-${pad(da)}`;
 }
-function parseCardTime(x){ const m=String(x??'').match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/); return m?{hm:`${pad(+m[1])}:${m[2]}`,full:`${pad(+m[1])}:${m[2]}:${m[3]||'00'}`}:{hm:'',full:''}; }
+function parseCardTime(x){
+  if(typeof x==='number'){ const f=x%1; if(!(f>0)) return {hm:'',full:''}; const t=Math.round(f*86400), h=Math.floor(t/3600)%24, mi=Math.floor(t%3600/60), se=t%60; return {hm:`${pad(h)}:${pad(mi)}`,full:`${pad(h)}:${pad(mi)}:${pad(se)}`}; }   // 엑셀 시각(소수)
+  const m=String(x??'').match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/); return m?{hm:`${pad(+m[1])}:${m[2]}`,full:`${pad(+m[1])}:${m[2]}:${m[3]||'00'}`}:{hm:'',full:''}; }
 function parseCardAmt(x){
   if(typeof x==='number') return Number.isFinite(x)?x:null;
   const s=String(x??'').replace(/[,원\s]/g,'');
   return /^-?\d+(\.\d+)?$/.test(s)?Number(s):null;
 }
-function cardHeaderMap(row){
-  const m={};
-  row.forEach((c,i)=>{ const s=String(c??'').replace(/\s/g,''); if(!s) return;
-    if(m.ap===undefined&&/승인번호/.test(s)) m.ap=i;
-    else if(m.cancel===undefined&&/취소/.test(s)) m.cancel=i;
-    else if(m.time===undefined&&/(승인|이용|거래)?(시각|시간)/.test(s)&&!/일자/.test(s)) m.time=i;
-    else if(m.date===undefined&&/승인일자|이용일자|이용일|거래일자|거래일|승인일/.test(s)) m.date=i;
-    else if(m.m===undefined&&/가맹점/.test(s)) m.m=i;
-    else if(m.v===undefined&&/금액/.test(s)&&!/합계/.test(s)) m.v=i;
+function cardHeaderMap(row){     // 머리글 이름이 카드사마다 달라도 찾음 (이용일·거래일·사용일 / 가맹점·이용처·상호 / 이용금액·결제금액…)
+  const m={}, vs=[];
+  row.forEach((c,i)=>{ const s=String(c??'').replace(/\s/g,''); if(!s||s.length>16||/^[\d,.\-:\/]+$/.test(s)) return;
+    if(m.ap===undefined&&/승인번호|승인No/i.test(s)) m.ap=i;
+    else if(m.time===undefined&&/(시각|시간)$/.test(s)&&!/일자|일시/.test(s)) m.time=i;
+    else if(m.date===undefined&&(/(승인|이용|거래|사용|매출|결제)(일자|일시|일|날짜)$/.test(s)||/^(일자|날짜|일시)$/.test(s))) m.date=i;
+    else if(m.m===undefined&&/가맹점|이용처|사용처|상호|이용하신곳|거래처|사용내역|이용내역/.test(s)) m.m=i;
+    else if(/금액|이용액|결제액|승인액/.test(s)&&!/합계|할인|적립|수수료|잔액|포인트|외화|US|\$|달러|현지|이자|예정|할부잔|원금잔/.test(s)) vs.push([i,/승인금액|이용금액|결제금액|거래금액|매출금액|승인액|이용액/.test(s)?3:/청구/.test(s)?1:2]);
+    else if(m.cancel===undefined&&/취소|상태/.test(s)) m.cancel=i;
   });
+  if(vs.length){ vs.sort((a,b)=>b[1]-a[1]||a[0]-b[0]); m.v=vs[0][0]; }
   return m;
 }
+const normM=m=>String(m||'').replace(/\(주\)|㈜|주식회사|\s|[()\[\].,·\-_'"]/g,'').toUpperCase();   // 띄어쓰기·(주) 달라도 같은 가게
 const CARD_SKIP=/^(일시불|할부|본인|가족|-|국내|해외|전체취소|부분취소)$/;
+const CARD_SUM=/^(합\s*계|소\s*계|총\s*계|누\s*계|총\s*이용.*|이용\s*합계|.*합계|일시불\s*\+\s*할부.*|할부\s*\+\s*일시불.*)$/;
 function cardRowLoose(r){
   const cells=r.map(x=>typeof x==='number'?x:String(x??'').trim());
   const di=cells.findIndex(c=>parseCardDate(c)); if(di<0) return null;
@@ -2092,23 +2098,43 @@ function cardRowLoose(r){
   let v=parseCardAmt(cells[vi]); if(cells.some(c=>/취소/.test(String(c)))&&v>0) v=-v;
   return {k:parseCardDate(cells[di]),tm:t.hm,ts:t.full,m:cells[mi],v,ap:''};
 }
+function findHeader(rows){        // 머리글 줄 찾기 (두 줄로 나뉜 머리글도 합쳐서)
+  const ok=m=>m.date!==undefined&&m.m!==undefined&&m.v!==undefined;
+  for(let i=0;i<Math.min(rows.length,40);i++){
+    let m=cardHeaderMap(rows[i]||[]); if(ok(m)) return {map:m,hi:i};
+    const a=rows[i]||[], b=rows[i+1]||[]; if(!a.length||!b.length) continue;
+    m=cardHeaderMap(Array.from({length:Math.max(a.length,b.length)},(_,k)=>`${a[k]??''}${b[k]??''}`)); if(ok(m)) return {map:m,hi:i+1};
+  }
+  return {map:null,hi:-1};
+}
 function rowsToCardTx(rows){
-  let map=null, hi=-1;
-  for(let i=0;i<Math.min(rows.length,20);i++){ const m=cardHeaderMap(rows[i]||[]); if(m.date!==undefined&&m.m!==undefined&&m.v!==undefined){ map=m; hi=i; break; } }
-  const tx=[];
+  const {map,hi}=findHeader(rows), tx=[], cnt={};
   for(let i=hi+1;i<rows.length;i++){
     const r=rows[i]||[]; let t=null;
     if(map){
       const k=parseCardDate(r[map.date]), v=parseCardAmt(r[map.v]), m=String(r[map.m]??'').trim();
-      if(k&&v!==null&&m){
-        const tt=parseCardTime(map.time!==undefined?r[map.time]:'');
+      if(k&&v!==null&&v!==0&&m&&!CARD_SUM.test(m)){
+        const tt=parseCardTime(map.time!==undefined?r[map.time]:r[map.date]);   // 시각 칸이 없으면 날짜 칸 안의 시각(2026-08-24 17:32)
         t={k,tm:tt.hm,ts:tt.full,m,v,ap:map.ap!==undefined?String(r[map.ap]??'').trim():''};
         if(map.cancel!==undefined&&/취소/.test(String(r[map.cancel]??''))&&t.v>0) t.v=-t.v;
       }
     } else t=cardRowLoose(r);
-    if(t) tx.push(t);
+    if(t&&CARD_SUM.test(t.m)) t=null;
+    if(t){ if(!t.ap&&!t.ts){ const ck=`${t.k}|${t.m}|${Math.abs(t.v)}|${t.v<0?'-':'+'}`; cnt[ck]=(cnt[ck]||0)+1; t.ts=`~${Math.abs(t.v)}~${cnt[ck]}`; }   // 시각·승인번호 없는 같은 결제 2번도 따로
+      tx.push(t); }
   }
+  tx.filter(t=>t.v<0&&!t.ap).forEach(c=>{ const o=tx.find(t=>t.v===-c.v&&!t.ap&&!t.pair&&normM(t.m)===normM(c.m)&&t.k<=c.k); if(o){ o.pair=1; c.k=o.k; c.ts=o.ts; c.m=o.m; } });   // 승인번호 없는 취소 → 같은 가게·같은 금액 승인과 상계
+  if(tx.length>2){ const tot=tx.reduce((x,t)=>x+t.v,0); for(let i=tx.length-1;i>=0;i--) if(tx[i].v>0&&tx[i].v*2===tot){ tx.splice(i,1); break; } }   // 나머지 합과 같은 금액 = 합계 줄
   return tx;
+}
+/* 데이터처럼 보이는데(날짜+금액) 결제로 못 읽은 줄 → '확인 필요'로 알려줌 */
+function missedRows(rows,tx){
+  const {hi}=findHeader(rows); let n=0;
+  for(let i=hi+1;i<rows.length;i++){ const r=rows[i]||[];
+    const hasD=r.some(c=>parseCardDate(c)), hasV=r.some(c=>typeof c==='number'?Math.abs(c)>=100&&!(c>20000&&c<80000&&parseCardDate(c)):/\d{1,3}(,\d{3})+|\d+\s*원/.test(String(c??'')));
+    if(hasD&&hasV&&!r.some(c=>CARD_SUM.test(String(c??'').trim()))) n++; }
+  const m=Math.max(0,n-tx.length);
+  return m;
 }
 /* ---- 형식 없는 붙여넣기: 줄·칸 모양과 상관없이 '날짜'를 기준으로 한 건씩 묶고, 그 안에서 금액·가맹점을 찾음 ----
    예) 앱 화면(가맹점 → 금액 → 날짜 줄), 한 줄 표, 날짜가 먼저 오는 목록, 연도 없는 날짜(10.15 · 10월 15일)도 OK */
@@ -2176,7 +2202,7 @@ function kxBuild(tx,src){
   const n=netCardTx(tx);
   n.items.forEach(it=>{
     const cdk=(data[it.k]||{}).cd||[];
-    const stored=cdk.find(e=>e.id===it.id)||cdk.find(e=>e.m===it.m&&e.v===it.v&&(!e.tm||!it.tm||e.tm===it.tm));   // 파일·붙여넣기를 섞어 올려도 같은 결제는 하나로
+    const stored=cdk.find(e=>e.id===it.id)||cdk.find(e=>normM(e.m)===normM(it.m)&&e.v===it.v&&(!e.tm||!it.tm||e.tm===it.tm));   // 파일·붙여넣기를 섞어 올려도 같은 결제는 하나로
     if(stored&&stored.id!==it.id) it.id=stored.id;
     if(stored&&stored.v===it.v){ it.dup=true; it.c=stored.c; return; }
     if(stored){ it.c=stored.c; it.upd=true; it.def=stored.c; return; }        // 부분취소 등으로 금액이 바뀐 결제
