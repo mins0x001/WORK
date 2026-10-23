@@ -4,14 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0A1120">
-<meta name="release-date" content="2026-10-20">
+<meta name="release-date" content="2026-10-23">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="업무일지">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>업무일지 V1.13 (2026-10-20)</title>
+<title>업무일지 V1.14 (2026-10-23)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
@@ -702,10 +702,11 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
    V1.10 (2026-10-20): 의충남(A522) → 충남 (예전 이름 기록·검색도 연결)
    V1.11 (2026-10-20): 카드사 앱 화면 복사(가맹점 → 금액 → 날짜 줄) 붙여넣기 지원, 시각 없는 내역과 엑셀 중복 방지
    V1.12 (2026-10-20): 붙여넣기를 형식 없이 읽기(날짜 기준으로 묶어 금액·가맹점 찾기, 연도 없는 날짜·취소 상계) + 반영 전 미리보기
-   V1.13 (2026-10-20): 엑셀 읽기 강화(머리글 이름 다양화·두 줄 머리글·모든 시트·날짜+시각 한 칸·합계 줄 제외) + 중복 확인을 한 건씩 짝짓기(가게 이름 띄어쓰기 무시, 같은 날 2번 결제 보존) + 못 읽은 줄 알림 */
+   V1.13 (2026-10-20): 엑셀 읽기 강화(머리글 이름 다양화·두 줄 머리글·모든 시트·날짜+시각 한 칸·합계 줄 제외) + 중복 확인을 한 건씩 짝짓기(가게 이름 띄어쓰기 무시, 같은 날 2번 결제 보존) + 못 읽은 줄 알림
+   V1.14 (2026-10-23): 국도 주소(경기도 의정부시 호국로 1334) 추가, 사업소 → 충남 18km → 19km */
 const APP_NAME    = '업무일지';
-const APP_VERSION = '1.13';
-const BUILD_DATE  = '2026-10-20';
+const APP_VERSION = '1.14';
+const BUILD_DATE  = '2026-10-23';
 
 /* ================= 대리점 · 거리 데이터 =================
    여기 데이터만 수정하면 됩니다 (대리점명 / 코드 / 전화번호 / 주소)
@@ -714,7 +715,7 @@ const ROWS = [
   {"name": "강동", "codes": ["2799"], "phone": "031-531-8998", "tier": 1, "dist": 11.4, "address": "포천시 내촌면 금강로 2005"},
   {"name": "경일", "codes": ["A100"], "phone": "031-563-8121", "tier": 1, "dist": null, "address": "구리시 안골로 12"},
   {"name": "고려", "codes": ["3748"], "phone": "031-534-4110", "tier": 1, "dist": null, "address": ""},
-  {"name": "국도", "codes": ["1321"], "phone": "031-842-8311", "tier": 1, "dist": 16.0, "address": ""},
+  {"name": "국도", "codes": ["1321"], "phone": "031-842-8311", "tier": 1, "dist": 16.0, "address": "경기도 의정부시 호국로 1334"},
   {"name": "다산", "codes": ["4447"], "phone": "031-557-7988", "tier": 1, "dist": null, "address": "남양주시 퇴계원읍 도제원로 77"},
   {"name": "대맥", "codes": ["2769", "A620"], "phone": "02-2214-2983", "tier": 1, "dist": null, "address": "양주시 평화로1970번길 230"},
   {"name": "대일", "codes": ["3069"], "phone": "031-542-5251", "tier": 1, "dist": null, "address": "포천시 소흘읍 소흘로 273"},
@@ -846,7 +847,7 @@ const DISTANCE_EDGES = [
   {"from": "우리", "to": "국도", "km": 5, "note": ""},
   {"from": "우리", "to": "새론", "km": 6, "note": ""},
   {"from": "우리", "to": "상계", "km": 15, "note": ""},
-  {"from": "사업소", "to": "충남", "km": 18, "note": ""},
+  {"from": "사업소", "to": "충남", "km": 19, "note": ""},
   {"from": "충남", "to": "의기아", "km": 3, "note": ""},
   {"from": "충남", "to": "우리", "km": 4, "note": ""},
   {"from": "충남", "to": "새론", "km": 2, "note": ""},
