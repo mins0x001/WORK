@@ -10,6 +10,7 @@ const fmt=n=>Math.round(Number(n)||0).toLocaleString('ko-KR');
 const escH=v=>String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const keyOf=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 const parseKey=k=>{ const [y,m,d]=k.split('-').map(Number); return new Date(y,m-1,d); };
+const addDays=(d,n)=>{ const x=new Date(d); x.setDate(x.getDate()+n); return x; };
 const WD=['일','월','화','수','목','금','토'];
 const ls={ get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }, set(k,v){ try{ localStorage.setItem(k,v); return true; }catch(e){ return false; } }, del(k){ try{ localStorage.removeItem(k); }catch(e){} } };
 const rj=(k,d)=>{ try{ const v=JSON.parse(ls.get(k)||'null'); return v==null?d:v; }catch(e){ return d; } };
@@ -97,5 +98,5 @@ const XL = (() => {
   }
   return { build };
 })();
-M.base={$,CARD_CATS,WD,XL,bus,escH,fmt,keyOf,ls,metaOf,pad,parseKey,rj,toast};
+M.base={$,CARD_CATS,WD,XL,addDays,bus,escH,fmt,keyOf,ls,metaOf,pad,parseKey,rj,toast};
 })(window.M=window.M||{});

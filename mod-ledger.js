@@ -10,6 +10,7 @@ const sync=M.sync;                                    // 동기화 모듈은 있
                         'r:<가게>':{g:분류} (같은 가게 분류 규칙) }
    지운 결제는 동기화 기록(del)에 남아 같은 엑셀을 다시 올려도 되살아나지 않음                                  */
 const EK='expenses.data.v1', EM='expenses.sync.meta', WK='worklog.data.v2', WM='worklog.sync.meta';
+let touchN=0;                                       // 기록이 바뀔 때마다 늘림 (계산 결과 다시 만들기용)
 const E=rj(EK,{});                                   // 같은 객체를 계속 씀(내용만 바꿈) → 다른 파일이 가져가도 최신
 function replaceE(n){ Object.keys(E).forEach(k=>delete E[k]); Object.assign(E,n||{}); touchN++; }
 function touch(keys){
@@ -53,7 +54,6 @@ const FIXED_G=new Set(['주거·공과금','대출','통신비','보험']);     
 let _bf=null;
 let _bfE=null;
 let _bfN=-1;
-let touchN=0;
 function bigFuelDay(d){          // 그날 6만원 넘는 주유가 있었나 (요소수 ↔ 바이크 주유 구분)
   if(_bfE!==E||_bfN!==touchN){ _bf=new Set(); Object.keys(E).forEach(k=>{ const r=E[k]; if(k.startsWith('t:')&&r&&isBigFuel(r.m,r.v)) _bf.add(r.d); }); _bfE=E; _bfN=touchN; }
   return _bf.has(d);
