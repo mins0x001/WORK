@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>업무일지 V1.16 (2026-10-26)</title>
+<title>업무일지 V2.00 (2026-10-26)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
@@ -371,30 +371,6 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 /* 카드내역 가져오기 */
 .cd-list{margin:0 0 8px;padding:8px 12px;border:1px dashed rgba(167,139,250,0.45);border-radius:12px;font-size:12.5px;color:var(--text-dim);line-height:1.7}
 .cd-list b{color:var(--text)}
-.kx-ta{width:100%;min-height:150px;border-radius:12px;border:1.5px solid var(--border);background:var(--panel-2);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.6;padding:10px 12px;margin-bottom:8px;resize:vertical;outline:none}
-.kx-ta:focus{border-color:rgba(94,234,212,0.55)}
-#kBody .rv{word-break:keep-all}
-#kBody .rv b{float:none}
-.kx-row{display:flex;align-items:center;gap:10px;padding:9px 2px;border-top:1px solid var(--border-soft)}
-.kx-row.off{opacity:.6}
-.kx-row.dup{opacity:.7}
-.kx-l{flex:1;min-width:0}
-.kx-l b{display:block;font-size:14.5px;font-weight:700;word-break:keep-all;overflow-wrap:break-word}
-.kx-l small{font-size:11.5px;color:var(--text-faint)}
-.kx-r{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none}
-.kx-r b{font-size:15px;font-weight:800}
-.kx-sel{min-height:36px;border-radius:10px;border:1px solid var(--border);background:var(--panel-3);color:var(--text);font-size:13px;font-weight:700;padding:0 8px}
-.kx-tag{font-size:11.5px;font-weight:700;color:var(--text-dim)}
-.kx-off{margin-top:8px;border:1px solid var(--border-soft);border-radius:12px;padding:4px 10px}
-.kx-off summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(--text-dim);padding:8px 0}
-.kx-res{margin-bottom:12px}
-.kx-day{padding:8px 2px;border-top:1px solid var(--border-soft);font-size:13.5px;line-height:1.7}
-.kx-day:first-child{border-top:0}
-.kx-day>b{display:block;font-size:14px}
-.kx-ch{display:block;color:var(--text-dim)}
-.kx-ch b{color:var(--glow)}
-.kx-keep{display:block;font-size:12px;color:var(--amber);padding:2px 0 2px 18px}
-.kx-keep input{margin:0 6px 0 0;vertical-align:-2px}
 
 /* 앱 설치 안내 */
 .ins-state{font-size:13px;line-height:1.6;color:var(--text-dim);margin-bottom:10px}
@@ -522,7 +498,6 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
       <a class="btn" href="expenses.html">💰 가계부 열기 <small>월·연 분석 · 소비 패턴</small></a>
       <button class="btn ghost" id="cardFileBtn" type="button">📂 업무허브에서 카드 엑셀 올리기</button>
       <button class="btn ghost" id="cardPasteBtn" type="button">📋 복사한 내역 붙여넣기</button>
-      <input type="file" id="cardFile" accept=".xlsx,.csv,.txt,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,text/plain" hidden>
     </div>
     <div class="card" style="--c:var(--amber)">
       <div class="card-head"><div class="card-icon">💾</div><div><div class="card-kicker">BACKUP</div><h2>백업 · 복원</h2></div></div>
@@ -668,25 +643,13 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
   </div>
 </div>
 
-<!-- 카드내역 가져오기: 미리보기 → 반영 -->
-<div class="overlay" id="kOverlay">
-  <div class="sheet" id="kSheet">
-    <div class="grab"></div>
-    <div class="sh"><h3>💳 카드내역 가져오기</h3></div>
-    <div id="kPaste" hidden>
-      <div class="help" style="margin:6px 2px 8px">삼성카드 앱이나 홈페이지의 이용내역 표를 복사해 붙여넣으세요. 한 줄에 <b>날짜 · 시각 · 가맹점 · 금액</b>이 있으면 됩니다.</div>
-      <textarea class="kx-ta" id="kText" spellcheck="false" placeholder="2026.08.24	17:32:05	선단IC주유소	242,459	일시불"></textarea>
-      <button class="btn" id="kParse" type="button">읽기</button>
-    </div>
-    <div id="kBody"></div>
-    <button class="btn" id="kApply" type="button" hidden>반영</button>
-    <button class="btn line" id="kCancel" type="button">닫기</button>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
 
+<script src="mod-base.js?v=1.00-2026-10-26"></script>
+<script src="mod-sync.js?v=1.00-2026-10-26"></script>
 <script>
+const {$,CARD_CATS,WD,XL,bus,escH,keyOf,metaOf,pad,parseKey}=M.base;
+const sync=M.sync;
 /* ================= 버전 정보 (하드코딩) =================
    V1.00 (2026-10-13): 버전 번호 새로 시작 — 근무일지 + 대리점코드 통합 앱
    - 조회한 대리점 목록을 1·2·3회전으로 그날 일지에 저장, 일지·달력·대리점 카드에서 다시 조회
@@ -705,9 +668,10 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
    V1.13 (2026-10-20): 엑셀 읽기 강화(머리글 이름 다양화·두 줄 머리글·모든 시트·날짜+시각 한 칸·합계 줄 제외) + 중복 확인을 한 건씩 짝짓기(가게 이름 띄어쓰기 무시, 같은 날 2번 결제 보존) + 못 읽은 줄 알림
    V1.14 (2026-10-23): 국도 주소(경기도 의정부시 호국로 1334) 추가, 사업소 → 충남 18km → 19km
    V1.15 (2026-10-26): 고려·장현 주소 추가
-   V1.16 (2026-10-26): 사능·세원 주소 추가, 양주H 대리점 삭제 (81곳 → 80곳) */
+   V1.16 (2026-10-26): 사능·세원 주소 추가, 양주H 대리점 삭제 (81곳 → 80곳)
+   V2.00 (2026-10-26): 구조 개편(모듈화) — 공통 코드를 독립 모듈 4개(mod-base·card·sync·ledger.js)로 분리, 중복 코드(엑셀 쓰기·카드 읽기·동기화) 제거, 쓰지 않던 카드 미리보기 제거. 동작·저장 형식은 그대로 */
 const APP_NAME    = '업무일지';
-const APP_VERSION = '1.16';
+const APP_VERSION = '2.00';
 const BUILD_DATE  = '2026-10-26';
 
 /* ================= 대리점 · 거리 데이터 =================
@@ -1066,7 +1030,6 @@ const SHIFT={
 };
 const NUMF=['odo','fuel','toll','urea'];
 const ROUNDS=['1','2','3'];
-const CARD_CATS={fuel:{label:'주유',ic:'⛽'},urea:{label:'요소수',ic:'💧'},toll:{label:'통행료',ic:'🛣️'}};   // 카드 결제 분류 = 비용 항목 이름
 const MAX_STOPS=40;
 const RENAMED={'충남(의정부)':'충남','의충남':'충남','충남(장안)':'장충남','C동우':'동우'};      // 이름이 바뀐 대리점: 예전 이름으로 저장된 회전 기록·검색어를 새 이름으로
 
@@ -1140,18 +1103,11 @@ function save(){
 let data=load();
 /* 하루 기록을 정해진 항목 순서로 넣기 (빈 기록이면 그 날짜를 지움) */
 function setDay(k,rec){ const n=normalize({[k]:rec||{}})[k]; if(n) data[k]=n; else delete data[k]; }
-try{ navigator.storage&&navigator.storage.persist&&navigator.storage.persist(); }catch(e){}
 
 /* ================= 날짜 유틸 ================= */
-const $=id=>document.getElementById(id);
-const pad=n=>String(n).padStart(2,'0');
-const keyOf=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-const parseKey=k=>{ const [y,m,d]=k.split('-').map(Number); return new Date(y,m-1,d); };
 const addDays=(d,n)=>{ const x=new Date(d); x.setDate(x.getDate()+n); return x; };
 const md=d=>`${d.getMonth()+1}/${d.getDate()}`;
-const WD=['일','월','화','수','목','금','토'];
 const fmt=n=>Number(n||0).toLocaleString('ko-KR');
-const escH=v=>String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const dLabel=k=>{ const d=parseKey(k); return `${md(d)} (${WD[d.getDay()]})`; };
 const nowKey=()=>keyOf(new Date());
 let today=new Date(); today.setHours(0,0,0,0);
@@ -1891,7 +1847,7 @@ let swReg=null, newVer=null, lastCheck=0;
 if(ONLINE && 'serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>swReg=r).catch(()=>{});
 }
-function busy(){ return $('overlay').classList.contains('on')||$('rOverlay').classList.contains('on')||$('cOverlay').classList.contains('on')||$('kOverlay').classList.contains('on')||
+function busy(){ return $('overlay').classList.contains('on')||$('rOverlay').classList.contains('on')||$('cOverlay').classList.contains('on')||
   (document.activeElement&&document.activeElement.tagName==='INPUT'); }
 async function checkUpdate(auto){
   if(!ONLINE||!navigator.onLine) return;
@@ -1965,452 +1921,16 @@ renderDistList(); renderRoute();
 renderAll();
 { const HASH={'#log':'pLog','#year':'pYear','#dist':'pDist','#more':'pMore'}; if(HASH[location.hash]) showPage(HASH[location.hash]); }
 
-/* ================= 💳 카드내역 가져오기 (삼성카드 이용내역 엑셀 · CSV · 붙여넣기) =================
-   ① 파일(.xlsx/.csv) 또는 복사한 표를 읽고  ② 같은 승인번호의 승인·취소를 상계한 뒤
-   ③ 가맹점명으로 주유 · 요소수 · 통행료를 나누고(나머지는 제외)  ④ 미리보기에서 확인 → 날짜별 비용에 반영
-   반영한 결제는 그날 기록(cd)에 남겨 같은 파일을 다시 올려도 두 번 들어가지 않음.
-   카드 합계와 다른 값을 손으로 입력해 둔 날은 미리보기에서 '직접 입력값 유지'를 고를 수 있음.          */
-const BIKE_MAX=60000;                         // 주유소 6만원 이하: 같은 날 큰 주유(>6만)가 있으면 요소수(업무), 없으면 바이크 주유(생활)
-const STATION_RE=/주유소|SK에너지|칼텍스|오일뱅크|S-?OIL|에쓰오일|알뜰주유/, LPG_RE=/충전소|LPG|엘피지/;   // 충전소 = LPG 차량 충전(생활)
-function isBigFuel(m,v){ const s=String(m||'').toUpperCase(); return !LPG_RE.test(s)&&STATION_RE.test(s)&&v>BIKE_MAX; }
-const K_CARDRULES='worklog.cardRules';         // 사용자가 미리보기에서 넣고/뺀 가맹점 기억 (이 기기)
-function cardRules(){ try{ return JSON.parse(ls.get(K_CARDRULES)||'{}')||{}; }catch(e){ return {}; } }
-function classifyCard(m,v,big){   // big: 같은 날 큰 주유가 있음
-  const rule=cardRules()[m];
-  if(rule!==undefined) return {c:CARD_CATS[rule]?rule:null,rule:true};
-  const s=m.toUpperCase();
-  if(/요소수|유록스|UREA|롯데정밀화학/.test(s)) return {c:'urea'};
-  if(/도로공사|하이패스|HI-?PASS|통행료|고속도로|유료도로/.test(s)) return {c:'toll'};
-  if(LPG_RE.test(s)) return {c:null};                                       // LPG 충전 → 업무일지 제외(가계부 생활비용)
-  if(STATION_RE.test(s)) return v>BIKE_MAX?{c:'fuel'}:big?{c:'urea',guess:true}:{c:null};   // 소액: 큰 주유 같은 날만 요소수
-  return {c:null};
-}
-
-/* ---- .xlsx 읽기 (외부 라이브러리 없이: ZIP 목차 → 압축 풀기 → XML) ---- */
-async function readZip(buf){
-  const dv=new DataView(buf), u8=new Uint8Array(buf), dec=new TextDecoder();
-  let e=-1;
-  for(let i=buf.byteLength-22;i>=Math.max(0,buf.byteLength-65557);i--){ if(dv.getUint32(i,true)===0x06054b50){ e=i; break; } }
-  if(e<0) throw new Error('엑셀(.xlsx) 파일을 읽을 수 없습니다');
-  const n=dv.getUint16(e+10,true); let p=dv.getUint32(e+16,true);
-  const out=new Map();
-  for(let i=0;i<n&&dv.getUint32(p,true)===0x02014b50;i++){
-    const method=dv.getUint16(p+10,true), csize=dv.getUint32(p+20,true), nlen=dv.getUint16(p+28,true), xlen=dv.getUint16(p+30,true), clen=dv.getUint16(p+32,true), lho=dv.getUint32(p+42,true);
-    const name=dec.decode(u8.subarray(p+46,p+46+nlen));
-    const start=lho+30+dv.getUint16(lho+26,true)+dv.getUint16(lho+28,true);
-    out.set(name,{method,data:u8.subarray(start,start+csize)});
-    p+=46+nlen+xlen+clen;
-  }
-  return out;
-}
-async function zipText(ents,name){
-  const e=ents.get(name); if(!e) return null;
-  let bytes=e.data;
-  if(e.method===8){
-    if(typeof DecompressionStream==='undefined') throw new Error('이 브라우저는 엑셀 읽기를 지원하지 않습니다. 브라우저를 업데이트하거나 내용을 복사해 붙여넣어 주세요');
-    bytes=new Uint8Array(await new Response(new Blob([e.data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
-  } else if(e.method!==0) throw new Error('지원하지 않는 엑셀 압축 형식입니다');
-  return new TextDecoder().decode(bytes);
-}
-async function xlsxRows(buf){
-  const ents=await readZip(buf), parse=x=>new DOMParser().parseFromString(x,'application/xml');
-  const ss=[], ssXml=await zipText(ents,'xl/sharedStrings.xml');
-  if(ssXml) for(const si of parse(ssXml).getElementsByTagName('si')){ let t=''; for(const x of si.getElementsByTagName('t')) t+=x.textContent; ss.push(t); }
-  const colIdx=ref=>{ let n=0; for(const ch of ref.replace(/[^A-Z]/g,'')) n=n*26+ch.charCodeAt(0)-64; return n-1; };
-  const names=[...ents.keys()].filter(n=>/^xl\/worksheets\/sheet\d+\.xml$/.test(n)).sort((a,b)=>parseInt(a.match(/\d+/))-parseInt(b.match(/\d+/)));
-  const sheets=[];
-  for(const name of names){
-    const rows=[];
-    for(const row of parse(await zipText(ents,name)).getElementsByTagName('row')){
-      const arr=[];
-      for(const c of row.getElementsByTagName('c')){
-        const t=c.getAttribute('t'), r=c.getAttribute('r'), vEl=c.getElementsByTagName('v')[0];
-        let v='';
-        if(t==='s') v=vEl?(ss[+vEl.textContent]??''):'';
-        else if(t==='inlineStr') v=[...c.getElementsByTagName('t')].map(x=>x.textContent).join('');
-        else if(vEl){ v=vEl.textContent; if(t!=='str'&&t!=='e'&&v!==''&&!isNaN(v)) v=Number(v); }
-        arr[r?colIdx(r):arr.length]=v;
-      }
-      rows.push(arr);
-    }
-    sheets.push(rows);
-  }
-  return sheets;
-}
-/* ---- .csv · 붙여넣기 읽기 ---- */
-function decodeText(buf){
-  let t=new TextDecoder('utf-8').decode(buf);
-  if(t.includes('�')){ try{ t=new TextDecoder('euc-kr').decode(buf); }catch(e){} }   // 카드사 CSV는 EUC-KR인 경우가 많음
-  return t.replace(/^﻿/,'');
-}
-function textRows(t){
-  return t.split(/\r?\n/).filter(l=>l.trim()).map(l=>{
-    if(l.includes('\t')) return l.split('\t');
-    const out=[]; let cur='', q=false;
-    for(let i=0;i<l.length;i++){ const ch=l[i];
-      if(q){ if(ch==='"'&&l[i+1]==='"'){ cur+='"'; i++; } else if(ch==='"') q=false; else cur+=ch; }
-      else if(ch==='"') q=true; else if(ch===','){ out.push(cur); cur=''; } else cur+=ch; }
-    out.push(cur);
-    return out.length>1?out:l.trim().split(/\s{2,}/);
-  });
-}
-/* ---- 행 → 결제 ---- */
-function parseCardDate(x){
-  if(typeof x==='number'&&x>20000&&x<80000){ const d=new Date(Date.UTC(1899,11,30)+Math.floor(x)*864e5); return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}`; }
-  const s=String(x??'').trim();
-  const m=s.match(/(20\d{2})\s*[.\-/년]\s*(\d{1,2})\s*[.\-/월]\s*(\d{1,2})/)||s.match(/^(20\d{2})(\d{2})(\d{2})$/);
-  if(!m) return null;
-  const mo=+m[2], da=+m[3]; if(mo<1||mo>12||da<1||da>31) return null;
-  return `${m[1]}-${pad(mo)}-${pad(da)}`;
-}
-function parseCardTime(x){
-  if(typeof x==='number'){ const f=x%1; if(!(f>0)) return {hm:'',full:''}; const t=Math.round(f*86400), h=Math.floor(t/3600)%24, mi=Math.floor(t%3600/60), se=t%60; return {hm:`${pad(h)}:${pad(mi)}`,full:`${pad(h)}:${pad(mi)}:${pad(se)}`}; }   // 엑셀 시각(소수)
-  const m=String(x??'').match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/); return m?{hm:`${pad(+m[1])}:${m[2]}`,full:`${pad(+m[1])}:${m[2]}:${m[3]||'00'}`}:{hm:'',full:''}; }
-function parseCardAmt(x){
-  if(typeof x==='number') return Number.isFinite(x)?x:null;
-  const s=String(x??'').replace(/[,원\s]/g,'');
-  return /^-?\d+(\.\d+)?$/.test(s)?Number(s):null;
-}
-function cardHeaderMap(row){     // 머리글 이름이 카드사마다 달라도 찾음 (이용일·거래일·사용일 / 가맹점·이용처·상호 / 이용금액·결제금액…)
-  const m={}, vs=[];
-  row.forEach((c,i)=>{ const s=String(c??'').replace(/\s/g,''); if(!s||s.length>16||/^[\d,.\-:\/]+$/.test(s)) return;
-    if(m.ap===undefined&&/승인번호|승인No/i.test(s)) m.ap=i;
-    else if(m.time===undefined&&/(시각|시간)$/.test(s)&&!/일자|일시/.test(s)) m.time=i;
-    else if(m.date===undefined&&(/(승인|이용|거래|사용|매출|결제)(일자|일시|일|날짜)$/.test(s)||/^(일자|날짜|일시)$/.test(s))) m.date=i;
-    else if(m.m===undefined&&/가맹점|이용처|사용처|상호|이용하신곳|거래처|사용내역|이용내역/.test(s)) m.m=i;
-    else if(/금액|이용액|결제액|승인액/.test(s)&&!/합계|할인|적립|수수료|잔액|포인트|외화|US|\$|달러|현지|이자|예정|할부잔|원금잔/.test(s)) vs.push([i,/승인금액|이용금액|결제금액|거래금액|매출금액|승인액|이용액/.test(s)?3:/청구/.test(s)?1:2]);
-    else if(m.cancel===undefined&&/취소|상태/.test(s)) m.cancel=i;
-  });
-  if(vs.length){ vs.sort((a,b)=>b[1]-a[1]||a[0]-b[0]); m.v=vs[0][0]; }
-  return m;
-}
-const normM=m=>String(m||'').replace(/\(주\)|㈜|주식회사|\s|[()\[\].,·\-_'"]/g,'').toUpperCase();   // 띄어쓰기·(주) 달라도 같은 가게
-const CARD_SKIP=/^(일시불|할부|본인|가족|-|국내|해외|전체취소|부분취소)$/;
-const CARD_SUM=/^(합\s*계|소\s*계|총\s*계|누\s*계|총\s*이용.*|이용\s*합계|.*합계|일시불\s*\+\s*할부.*|할부\s*\+\s*일시불.*)$/;
-function cardRowLoose(r){
-  const cells=r.map(x=>typeof x==='number'?x:String(x??'').trim());
-  const di=cells.findIndex(c=>parseCardDate(c)); if(di<0) return null;
-  const ti=cells.findIndex(c=>/^\d{1,2}:\d{2}/.test(String(c)));
-  const mi=cells.findIndex((c,i)=>i!==di&&i!==ti&&typeof c==='string'&&c&&parseCardAmt(c)===null&&!parseCardDate(c)&&!CARD_SKIP.test(c));
-  if(mi<0) return null;
-  const vi=cells.findIndex((c,i)=>i>mi&&parseCardAmt(c)!==null);
-  if(vi<0) return null;
-  const t=parseCardTime(ti>=0?cells[ti]:'');
-  let v=parseCardAmt(cells[vi]); if(cells.some(c=>/취소/.test(String(c)))&&v>0) v=-v;
-  return {k:parseCardDate(cells[di]),tm:t.hm,ts:t.full,m:cells[mi],v,ap:''};
-}
-function findHeader(rows){        // 머리글 줄 찾기 (두 줄로 나뉜 머리글도 합쳐서)
-  const ok=m=>m.date!==undefined&&m.m!==undefined&&m.v!==undefined;
-  for(let i=0;i<Math.min(rows.length,40);i++){
-    let m=cardHeaderMap(rows[i]||[]); if(ok(m)) return {map:m,hi:i};
-    const a=rows[i]||[], b=rows[i+1]||[]; if(!a.length||!b.length) continue;
-    m=cardHeaderMap(Array.from({length:Math.max(a.length,b.length)},(_,k)=>`${a[k]??''}${b[k]??''}`)); if(ok(m)) return {map:m,hi:i+1};
-  }
-  return {map:null,hi:-1};
-}
-function rowsToCardTx(rows){
-  const {map,hi}=findHeader(rows), tx=[], cnt={};
-  for(let i=hi+1;i<rows.length;i++){
-    const r=rows[i]||[]; let t=null;
-    if(map){
-      const k=parseCardDate(r[map.date]), v=parseCardAmt(r[map.v]), m=String(r[map.m]??'').trim();
-      if(k&&v!==null&&v!==0&&m&&!CARD_SUM.test(m)){
-        const tt=parseCardTime(map.time!==undefined?r[map.time]:r[map.date]);   // 시각 칸이 없으면 날짜 칸 안의 시각(2026-08-24 17:32)
-        t={k,tm:tt.hm,ts:tt.full,m,v,ap:map.ap!==undefined?String(r[map.ap]??'').trim():''};
-        if(map.cancel!==undefined&&/취소/.test(String(r[map.cancel]??''))&&t.v>0) t.v=-t.v;
-      }
-    } else t=cardRowLoose(r);
-    if(t&&CARD_SUM.test(t.m)) t=null;
-    if(t){ if(!t.ap&&!t.ts){ const ck=`${t.k}|${t.m}|${Math.abs(t.v)}|${t.v<0?'-':'+'}`; cnt[ck]=(cnt[ck]||0)+1; t.ts=`~${Math.abs(t.v)}~${cnt[ck]}`; }   // 시각·승인번호 없는 같은 결제 2번도 따로
-      tx.push(t); }
-  }
-  tx.filter(t=>t.v<0&&!t.ap).forEach(c=>{ const o=tx.find(t=>t.v===-c.v&&!t.ap&&!t.pair&&normM(t.m)===normM(c.m)&&t.k<=c.k); if(o){ o.pair=1; c.k=o.k; c.ts=o.ts; c.m=o.m; } });   // 승인번호 없는 취소 → 같은 가게·같은 금액 승인과 상계
-  if(tx.length>2){ const tot=tx.reduce((x,t)=>x+t.v,0); for(let i=tx.length-1;i>=0;i--) if(tx[i].v>0&&tx[i].v*2===tot){ tx.splice(i,1); break; } }   // 나머지 합과 같은 금액 = 합계 줄
-  return tx;
-}
-/* 데이터처럼 보이는데(날짜+금액) 결제로 못 읽은 줄 → '확인 필요'로 알려줌 */
-function missedRows(rows,tx){
-  const {hi}=findHeader(rows); let n=0;
-  for(let i=hi+1;i<rows.length;i++){ const r=rows[i]||[];
-    const hasD=r.some(c=>parseCardDate(c)), hasV=r.some(c=>typeof c==='number'?Math.abs(c)>=100&&!(c>20000&&c<80000&&parseCardDate(c)):/\d{1,3}(,\d{3})+|\d+\s*원/.test(String(c??'')));
-    if(hasD&&hasV&&!r.some(c=>CARD_SUM.test(String(c??'').trim()))) n++; }
-  const m=Math.max(0,n-tx.length);
-  return m;
-}
-/* ---- 형식 없는 붙여넣기: 줄·칸 모양과 상관없이 '날짜'를 기준으로 한 건씩 묶고, 그 안에서 금액·가맹점을 찾음 ----
-   예) 앱 화면(가맹점 → 금액 → 날짜 줄), 한 줄 표, 날짜가 먼저 오는 목록, 연도 없는 날짜(10.15 · 10월 15일)도 OK */
-const FZ_DATE=/(20\d{2})\s*[.\-\/년]\s*(\d{1,2})\s*[.\-\/월]\s*(\d{1,2})\s*일?|(?<![\d.,])(\d{1,2})\s*(?:[.\/]|월\s*)(\d{1,2})\s*일?(?![\d,]|\s*원)/;
-const FZ_AMT=/(-?\d{1,3}(?:,\d{3})+|-?\d+)\s*원|(-?\d{1,3}(?:,\d{3})+)(?![\d*])/g;
-const FZ_SKIP_AMT=/(할인|적립|포인트|잔액|한도|수수료|이자|캐시백|혜택|청구|결제예정|누적|합계|총)\s*[:：]?\s*$/;
-const FZ_STOP=/^(본인|가족|일시불|할부|무이자|\d+개월|승인|정상|국내|해외|신용|체크|일반|결제|매출|복지할인|할인|적립|포인트|원|KRW|매입|확정|대기|전표|이용|이용일|이용일시|가맹점|가맹점명|금액|이용금액|승인금액|승인번호|카드|구분|상태|사용처|누적|잔액|합계|한도|[\d\-:.,*\/]+|\[.*\]|\(.*\)|\S*님|\S*\d{3,}\*+\S*|\*+\d+)$/i;
-function fzDate(m){
-  if(m[1]) return `${m[1]}-${pad(+m[2])}-${pad(+m[3])}`;
-  const mo=+m[4], d=+m[5]; if(mo<1||mo>12||d<1||d>31) return '';
-  const t=new Date(); let y=t.getFullYear(); if(new Date(y,mo-1,d)>new Date(t.getFullYear(),t.getMonth(),t.getDate()+1)) y--;   // 연도 없으면 미래가 안 되게
-  return `${y}-${pad(mo)}-${pad(d)}`;
-}
-function fuzzyCardTx(text){
-  const L=String(text||'').split(/\r?\n/).map(l=>l.trim()).filter(Boolean), di=[];
-  L.forEach((l,i)=>{ const m=l.match(FZ_DATE); if(m&&fzDate(m)) di.push(i); });
-  if(!di.length) return [];
-  const amtIn=l=>{ const out=[]; let m; FZ_AMT.lastIndex=0; const s=l.replace(FZ_DATE,' ').replace(/\d{1,2}:\d{2}(:\d{2})?/g,' ');
-    while((m=FZ_AMT.exec(s))){ if(!FZ_SKIP_AMT.test(s.slice(Math.max(0,m.index-10),m.index))) out.push(+(m[1]||m[2]).replace(/,/g,'')); } return out; };
-  const before=L.slice(0,di[0]).some(l=>amtIn(l).length);          // 금액이 날짜보다 먼저 나오면 '앞쪽 묶음' 형식
-  const tx=[], cnt={};
-  di.forEach((d,n)=>{
-    const blk=before?L.slice(n?di[n-1]+1:0,d+1):L.slice(d,n+1<di.length?di[n+1]:L.length);
-    const dm=L[d].match(FZ_DATE), k=fzDate(dm), tt=parseCardTime(L[d].replace(FZ_DATE,' ')+' '+blk.join(' ').replace(FZ_DATE,' '));
-    let v=null; for(const l of (before?blk.slice().reverse():blk)){ const a=amtIn(l).filter(x=>x!==0); if(a.length){ v=a[0]; break; } }
-    if(v===null) return;
-    const cands=[];
-    blk.forEach(l=>{ if(FZ_SKIP_AMT.test(l.replace(/[\d,\s원]+$/,''))&&!/[가-힣A-Za-z]{2,}.*\d/.test(l.replace(FZ_SKIP_AMT,''))) return;
-      const c=l.replace(FZ_DATE,' ').replace(/\d{1,2}:\d{2}(:\d{2})?/g,' ').replace(/-?\d{1,3}(,\d{3})+\s*원?|-?\d+\s*원/g,' ')
-        .split(/\t|\s{2,}|\|/).map(seg=>seg.split(/\s+/).filter(w=>w&&!FZ_STOP.test(w)&&!/^(할인|적립|포인트)/.test(w)).join(' ').trim()).filter(x=>/[가-힣A-Za-z]{2,}/.test(x));
-      c.forEach(x=>cands.push({x,dl:l===L[d]})); });
-    const nd=cands.filter(c=>!c.dl), pick=(nd.length?nd:cands), m=pick.length?(before?pick[pick.length-1]:pick[0]).x:'';
-    if(!m) return;
-    if(/취소/.test(blk.join(' '))&&v>0) v=-v;
-    const ck=`${k}|${m}|${Math.abs(v)}|${v<0?'-':'+'}`; cnt[ck]=(cnt[ck]||0)+1;
-    tx.push({k,tm:tt.hm,ts:tt.full||`~${Math.abs(v)}~${cnt[ck]}`,m,v,ap:''});   // 시각 없으면 금액·순번으로 구분 (같은 가게 같은 날 2번도 따로)
-  });
-  tx.filter(t=>t.v<0).forEach(c=>{ const o=tx.find(t=>t.v===-c.v&&t.m===c.m&&!t.x); if(o){ o.x=c.x=1; } });   // 취소: 다른 날짜의 같은 가게·같은 금액 승인과 상계
-  return tx.filter(t=>!t.x);
-}
-function pasteTx(text){        // 표 형식으로 읽은 결과와 비교해 더 많이 읽힌 쪽 사용
-  const rows=textRows(text), a=rowsToCardTx(rows), b=fuzzyCardTx(text);
-  return b.length>a.length?{tx:b,rows:rows,fuzzy:true}:{tx:a,rows:rows,fuzzy:false};
-}
-/* 같은 결제(승인번호, 없으면 날짜+시각+가맹점)의 승인·취소를 더해서 정리 */
-function netCardTx(tx){
-  const g=new Map();
-  tx.forEach(t=>{
-    const id=t.ap?`${t.k}#${t.ap}`:`${t.k}#${t.ts}#${t.m}`;
-    let x=g.get(id); if(!x){ x={id,k:t.k,tm:t.tm,ts:t.ts,m:t.m,v:0,pos:false,neg:false}; g.set(id,x); }
-    x.v+=t.v; if(t.v>0) x.pos=true; if(t.v<0) x.neg=true;
-  });
-  const items=[], orphan=[]; let canceled=0;
-  for(const x of g.values()){
-    x.v=Math.round(x.v);
-    if(x.v>0) items.push(x); else if(x.pos&&x.neg) canceled++; else if(x.neg) orphan.push({id:x.id,k:x.k});
-  }
-  items.sort((a,b)=>a.k===b.k?(a.ts<b.ts?1:a.ts>b.ts?-1:0):(a.k<b.k?1:-1));     // 최근 날짜·시각이 위
-  return {items,canceled,orphan,raw:tx.length};
-}
-
-/* ---- 미리보기 ---- */
-let kx=null;
-function kxBuild(tx,src){
-  const n=netCardTx(tx);
-  n.items.forEach(it=>{
-    const cdk=(data[it.k]||{}).cd||[];
-    const stored=cdk.find(e=>e.id===it.id)||cdk.find(e=>normM(e.m)===normM(it.m)&&e.v===it.v&&(!e.tm||!it.tm||e.tm===it.tm));   // 파일·붙여넣기를 섞어 올려도 같은 결제는 하나로
-    if(stored&&stored.id!==it.id) it.id=stored.id;
-    if(stored&&stored.v===it.v){ it.dup=true; it.c=stored.c; return; }
-    if(stored){ it.c=stored.c; it.upd=true; it.def=stored.c; return; }        // 부분취소 등으로 금액이 바뀐 결제
-    const cl=classifyCard(it.m,it.v,n.items.some(x=>x.k===it.k&&isBigFuel(x.m,x.v))||cdk.some(e=>e.c==='fuel'&&e.v>BIKE_MAX)); it.c=cl.c; it.def=cl.c; it.guess=!!cl.guess;
-  });
-  kx={...n,src,keep:{}};
-}
-/* 날짜별로 바뀌는 비용 계산 */
-function kxPlan(){
-  const touched=kx.items.filter(it=>!it.dup), days=new Set([...touched.map(it=>it.k),...kx.orphan.map(o=>o.k)]);
-  const plan=[];
-  [...days].sort().reverse().forEach(k=>{
-    const rec=data[k]||{}, old=rec.cd||[];
-    const drop=new Set([...touched.filter(it=>it.k===k).map(it=>it.id),...kx.orphan.filter(o=>o.k===k).map(o=>o.id)]);
-    const cd=old.filter(e=>!drop.has(e.id)).concat(touched.filter(it=>it.k===k&&it.c).map(it=>{ const o={id:it.id,m:it.m,v:it.v,c:it.c}; if(it.tm) o.tm=it.tm; return o; }));
-    const ch=[];
-    Object.keys(CARD_CATS).forEach(c=>{
-      const oldSum=old.filter(e=>e.c===c).reduce((x,e)=>x+e.v,0), newSum=cd.filter(e=>e.c===c).reduce((x,e)=>x+e.v,0);
-      if(newSum===oldSum) return;
-      const cur=rec[c]||0;
-      ch.push({c,cur,newSum,manual:!!cur&&cur!==oldSum&&cur!==newSum});
-    });
-    if(ch.length||JSON.stringify(cd)!==JSON.stringify(old)) plan.push({k,cd,ch});
-  });
-  return plan;
-}
-const catOpts=c=>`<option value="">제외</option>`+Object.keys(CARD_CATS).map(x=>`<option value="${x}"${x===c?' selected':''}>${CARD_CATS[x].ic} ${CARD_CATS[x].label}</option>`).join('');
-function kxRow(it){
-  const d=parseKey(it.k), cat=CARD_CATS[it.c];
-  const tag=it.dup?`<span class="kx-tag">${cat.ic} ${cat.label} · 반영됨</span>`:`<select class="kx-sel" data-id="${escH(it.id)}" aria-label="${escH(it.m)} 분류">${catOpts(it.c)}</select>`;
-  return `<div class="kx-row${it.c?'':' off'}${it.dup?' dup':''}">
-    <div class="kx-l"><b>${escH(it.m)}</b><small class="num">${md(d)} (${WD[d.getDay()]}) ${it.tm||''}${it.guess&&it.c===it.def?' · 금액으로 요소수 추정':''}${it.upd?' · 금액 바뀜':''}</small></div>
-    <div class="kx-r"><b class="num">${fmt(it.v)}원</b>${tag}</div></div>`;
-}
-function kxRender(){
-  const el=$('kBody');
-  if(!kx){ el.innerHTML=''; $('kApply').hidden=true; return; }
-  const biz=kx.items.filter(it=>it.c), off=kx.items.filter(it=>!it.c);
-  const keys=kx.items.map(it=>it.k).sort();
-  const sumBiz=biz.reduce((x,it)=>x+it.v,0);
-  const plan=kxPlan(); kx.plan=plan;
-  const res=plan.length?plan.map(p=>`<div class="kx-day"><b>${dLabel(p.k)}</b>${p.ch.length?p.ch.map(x=>{
-      const kk=`${p.k}|${x.c}`, keep=!!kx.keep[kk];
-      return `<span class="kx-ch">${CARD_CATS[x.c].ic} ${CARD_CATS[x.c].label} <span class="num">${x.cur?fmt(x.cur):'—'} → <b>${fmt(x.newSum)}</b></span>${x.manual?`<label class="kx-keep"><input type="checkbox" data-keep="${kk}"${keep?' checked':''}> 직접 입력한 ${fmt(x.cur)}원 유지</label>`:''}</span>`;
-    }).join(''):'<span class="kx-ch">카드 결제 목록만 정리</span>'}</div>`).join('')
-    :'<div class="rt-none">새로 반영할 내용이 없습니다. (이미 모두 반영했거나 업무 비용이 없습니다)</div>';
-  el.innerHTML=`
-    <div class="rv">${escH(kx.src)}<br>
-      결제 <b class="num">${kx.items.length}건</b>${keys.length?` · <span class="num">${keys[0].slice(5).replace('-','/')} ~ ${keys[keys.length-1].slice(5).replace('-','/')}</span>`:''}${kx.canceled?` · 취소로 없어진 결제 ${kx.canceled}건`:''}<br>
-      업무 비용 <b class="num">${biz.length}건 · ${fmt(sumBiz)}원</b> · 제외 ${off.length}건</div>
-    <div class="lbl">업무 비용 (분류를 바꿀 수 있습니다)</div>
-    ${biz.length?biz.map(kxRow).join(''):'<div class="rt-none">주유소·요소수·통행료로 보이는 결제가 없습니다. 아래 제외 목록에서 직접 분류할 수 있습니다.</div>'}
-    ${off.length?`<details class="kx-off"><summary>업무 외로 제외한 ${off.length}건 보기 · 넣으려면 분류 선택</summary>${off.map(kxRow).join('')}</details>`:''}
-    <div class="lbl">일지에 반영되는 내용</div>
-    <div class="kx-res">${res}</div>`;
-  $('kApply').hidden=!plan.length;
-  $('kApply').textContent=`✅ ${plan.length}일 비용에 반영`;
-}
-$('kBody').addEventListener('change',e=>{
-  if(!kx) return;
-  const sel=e.target.closest('.kx-sel');
-  if(sel){
-    const it=kx.items.find(x=>x.id===sel.dataset.id); if(!it) return;
-    const c=sel.value||null;
-    if((it.def===null)!==(c===null)){            // 업무 외 ↔ 업무 비용으로 바꾼 가맹점은 다음에도 같은 분류로
-      const rules=cardRules(); rules[it.m]=c||''; ls.set(K_CARDRULES,JSON.stringify(rules));
-      kx.items.forEach(x=>{ if(!x.dup&&x.m===it.m&&x!==it){ x.c=c; } });
-    }
-    it.c=c; kxRender(); return;
-  }
-  const kp=e.target.closest('[data-keep]');
-  if(kp){ kx.keep[kp.dataset.keep]=kp.checked; }
-});
-function openK(mode){
-  $('kPaste').hidden=mode!=='paste';
-  if(mode==='paste'){ kx=null; $('kText').value=''; }
-  kxRender();
-  $('toast').classList.remove('on');
-  if(!$('kOverlay').classList.contains('on')){ $('kOverlay').classList.add('on'); history.pushState({card:1},''); }
-  $('kSheet').scrollTop=0;
-  if(mode==='paste') setTimeout(()=>$('kText').focus(),200);
-}
-function closeK(fromPop){ $('kOverlay').classList.remove('on'); kx=null; if(!fromPop&&history.state&&history.state.card) history.back(); }
-function kxApply(){
-  if(!kx||!kx.plan||!kx.plan.length) return;
-  let n=0;
-  kx.plan.forEach(p=>{
-    const rec=Object.assign({},data[p.k]||{});
-    rec.cd=p.cd;
-    p.ch.forEach(x=>{ if(x.manual&&kx.keep[`${p.k}|${x.c}`]) return; if(x.newSum>0) rec[x.c]=x.newSum; else delete rec[x.c]; n++; });
-    setDay(p.k,rec);
-  });
-  const days=kx.plan.length;
-  save(); closeK(); renderAll();
-  toast(`💳 ${days}일 비용 반영 · ${n}개 항목`);
-}
-async function cardFromFile(f){
-  try{
-    const buf=await f.arrayBuffer(), h=new Uint8Array(buf.slice(0,4));
-    let tx;
-    if(h[0]===0x50&&h[1]===0x4B){ const sheets=await xlsxRows(buf); tx=sheets.map(rowsToCardTx).sort((a,b)=>b.length-a.length)[0]||[]; }
-    else if(h[0]===0xD0&&h[1]===0xCF) throw new Error('예전 엑셀(.xls) 형식입니다. 엑셀(.xlsx)로 저장하거나 내용을 복사해 붙여넣어 주세요');
-    else tx=rowsToCardTx(textRows(decodeText(buf)));
-    if(!tx.length) throw new Error('결제 내역을 찾지 못했습니다. 카드 이용내역 파일이 맞는지 확인해 주세요');
-    kxBuild(tx,`파일 ${f.name.length>26?f.name.slice(0,24)+'…':f.name}`);
-    openK('file');
-  }catch(err){ toast('⚠ '+(err&&err.message||'파일을 읽지 못했습니다')); }
-}
-$('cardFile').onchange=e=>{ const f=e.target.files[0]; e.target.value=''; if(f) cardFromFile(f); };
-$('cardFileBtn').onclick=()=>{ location.href='index.html#import'; };   // 엑셀은 업무허브에서 올리면 가계부 + 업무일지에 함께 반영
+/* ================= 카드 연동 (카드 엑셀·붙여넣기 올리기는 업무허브에서) ================= */
+$('cardFileBtn').onclick=()=>{ location.href='index.html#import'; };
 $('cardPasteBtn').onclick=()=>{ location.href='index.html#paste'; };
-$('kParse').onclick=()=>{
-  const tx=rowsToCardTx(textRows($('kText').value||''));
-  if(!tx.length){ toast('⚠ 날짜·가맹점·금액이 있는 줄을 찾지 못했습니다'); return; }
-  kxBuild(tx,'붙여넣은 내역'); $('kPaste').hidden=true; kxRender(); $('kSheet').scrollTop=0;
-};
-$('kApply').onclick=kxApply;
-$('kCancel').onclick=()=>closeK();
-$('kOverlay').onclick=e=>{ if(e.target.id==='kOverlay') closeK(); };
 $('cCost').addEventListener('click',e=>{ if(e.target.closest('.kx-open')) location.href='index.html#import'; });
-window.addEventListener('popstate',()=>{ if($('kOverlay').classList.contains('on')) closeK(true); });
 /* 날짜 창: 그날 반영된 카드 결제 */
 function renderSheetCard(){
   const el=$('sCard'), cd=selKey?((data[selKey]||{}).cd||[]):[];
   el.hidden=!cd.length;
-  el.innerHTML=cd.length?`💳 카드 결제 ${cd.length}건 · <b class="num">${fmt(cd.reduce((x,e)=>x+e.v,0))}원</b>`+cd.map(e=>`<br>${e.tm?`<span class="num">${e.tm}</span> `:''}${escH(e.m)} ${CARD_CATS[e.c].ic} <b class="num">${fmt(e.v)}</b>`).join(''):'';
+  el.innerHTML=cd.length?`💳 카드 결제 ${cd.length}건 · <b class="num">${fmt(cd.reduce((x,e)=>x+e.v,0))}원</b>`+cd.map(e=>`<br>${e.tm?`<span class="num">${e.tm}</span> `:''}${escH(e.m)} ${CARD_CATS[e.c].ic} <b class="num">${fmt(e.v)}</b>`).join(''):''
 }
-/* ======================== 📊 엑셀(.xlsx) 내보내기 ======================== */
-const XL = (() => {
-  const esc = v => String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  const col = n => { let c = ""; n++; while (n) { const m = (n - 1) % 26; c = String.fromCharCode(65 + m) + c; n = Math.floor((n - 1) / 26); } return c; };
-  const serial = ds => { const [y, m, d] = ds.split("-").map(Number); return (Date.UTC(y, m - 1, d) - Date.UTC(1899, 11, 30)) / 864e5; };
-  const crcT = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
-  const crc32 = u => { let c = 0xFFFFFFFF; for (let i = 0; i < u.length; i++) c = crcT[(c ^ u[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
-  function zip(files) {               // 무압축(store) ZIP
-    const enc = new TextEncoder(), parts = [], cen = []; let off = 0;
-    for (const f of files) {
-      const name = enc.encode(f.name), data = typeof f.data === "string" ? enc.encode(f.data) : f.data, crc = crc32(data);
-      const h = new DataView(new ArrayBuffer(30));
-      h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true); h.setUint16(8, 0, true);
-      h.setUint16(10, 0, true); h.setUint16(12, 0x21, true); h.setUint32(14, crc, true); h.setUint32(18, data.length, true);
-      h.setUint32(22, data.length, true); h.setUint16(26, name.length, true); h.setUint16(28, 0, true);
-      parts.push(new Uint8Array(h.buffer), name, data);
-      const c = new DataView(new ArrayBuffer(46));
-      c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true); c.setUint16(10, 0, true);
-      c.setUint16(12, 0, true); c.setUint16(14, 0x21, true); c.setUint32(16, crc, true); c.setUint32(20, data.length, true); c.setUint32(24, data.length, true);
-      c.setUint16(28, name.length, true); c.setUint32(42, off, true);
-      cen.push(new Uint8Array(c.buffer), name);
-      off += 30 + name.length + data.length;
-    }
-    const cenSize = cen.reduce((x, p) => x + p.length, 0);
-    const e = new DataView(new ArrayBuffer(22));
-    e.setUint32(0, 0x06054b50, true); e.setUint16(8, files.length, true); e.setUint16(10, files.length, true);
-    e.setUint32(12, cenSize, true); e.setUint32(16, off, true);
-    return new Blob([...parts, ...cen, new Uint8Array(e.buffer)], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-  }
-  // 셀 스타일: 0 기본 1 헤더 2 $ 3 % 4 정수 5 ±$ 6 합계±$ 7 굵게 8 합계% 9 날짜 10 합계$
-  const styles = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
-<numFmts count="3"><numFmt numFmtId="164" formatCode="&quot;$&quot;#,##0.00"/><numFmt numFmtId="166" formatCode="&quot;+$&quot;#,##0.00;&quot;-$&quot;#,##0.00;&quot;$&quot;0.00"/><numFmt numFmtId="167" formatCode="yyyy-mm-dd"/></numFmts>
-<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts>
-<fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFDDEBF7"/><bgColor indexed="64"/></patternFill></fill></fills>
-<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>
-<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
-<cellXfs count="11">
-<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
-<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>
-<xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>
-<xf numFmtId="10" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>
-<xf numFmtId="3" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>
-<xf numFmtId="166" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>
-<xf numFmtId="166" fontId="1" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/>
-<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>
-<xf numFmtId="10" fontId="1" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/>
-<xf numFmtId="167" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>
-<xf numFmtId="164" fontId="1" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/>
-</cellXfs>
-<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
-</styleSheet>`;
-  function sheetXml(sh) {
-    const rows = sh.rows.map((r, ri) => `<row r="${ri + 1}">` + r.map((c, ci) => {
-      if (c === null || c === undefined || c === "") return "";
-      const o = typeof c === "object" ? c : { v: c };
-      if (o.v === "" && !o.f && !o.d) return "";
-      const ref = col(ci) + (ri + 1), st = o.s ? ` s="${o.s}"` : "";
-      if (o.f) return `<c r="${ref}"${st}><f>${esc(o.f)}</f>${typeof o.v === "number" && isFinite(o.v) ? `<v>${o.v}</v>` : ""}</c>`;
-      if (o.d) return `<c r="${ref}" s="${o.s || 9}"><v>${serial(o.d)}</v></c>`;
-      if (typeof o.v === "number") return isFinite(o.v) ? `<c r="${ref}"${st}><v>${o.v}</v></c>` : "";
-      return `<c r="${ref}"${st} t="inlineStr"><is><t xml:space="preserve">${esc(o.v)}</t></is></c>`;
-    }).join("") + `</row>`).join("");
-    const cols = sh.cols ? `<cols>${sh.cols.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join("")}</cols>` : "";
-    const pane = sh.freeze ? `<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>` : `<sheetViews><sheetView workbookViewId="0"/></sheetViews>`;
-    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${pane}${cols}<sheetData>${rows}</sheetData></worksheet>`;
-  }
-  function build(sheets) {
-    const files = [
-      { name: "[Content_Types].xml", data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${sheets.map((_, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join("")}</Types>` },
-      { name: "_rels/.rels", data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>` },
-      { name: "xl/workbook.xml", data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${sheets.map((sh, i) => `<sheet name="${esc(sh.name)}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join("")}</sheets><calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>` },
-      { name: "xl/_rels/workbook.xml.rels", data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${sheets.map((_, i) => `<Relationship Id="rId${i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join("")}<Relationship Id="rId${sheets.length + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>` },
-      { name: "xl/styles.xml", data: styles },
-      ...sheets.map((sh, i) => ({ name: `xl/worksheets/sheet${i + 1}.xml`, data: sheetXml(sh) })),
-    ];
-    return zip(files);
-  }
-  return { build };
-})();
 function buildWorkbook(){
   const keys=Object.keys(data).sort();
   const Hd=s=>({v:s,s:1});
@@ -2523,135 +2043,62 @@ $('insBtn').addEventListener('click',async()=>{
 });
 insRender();
 
-/* ================= ☁️ PC · 모바일 동기화 (GitHub 비공개 Gist) =================
-   무한매수와 같은 Gist(muhan-sync)의 worklog.json
-   합치기: 날짜별 수정 시각(mt)이 더 늦은 쪽이 이김 · 삭제 표시(del)가 더 늦으면 삭제 */
-const SYNC={file:'worklog.json',desc:'muhan-sync (무한매수 기록 동기화 · 지우지 마세요)',tok:'muhansync_token',gist:'muhansync_gist',meta:'worklog.sync.meta'};
-const syncTok=()=>ls.get(SYNC.tok)||'', syncGist=()=>ls.get(SYNC.gist)||'';
-const syncDevice=()=>/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)?'모바일':'PC';
-function syncMeta(){ try{ return Object.assign({mt:{},del:{},last:0,dirty:false,note:''},JSON.parse(ls.get(SYNC.meta)||'{}')); }catch(e){ return {mt:{},del:{},last:0,dirty:false,note:''}; } }
-function saveSyncMeta(m){ ls.set(SYNC.meta,JSON.stringify(m)); }
+/* ================= ☁️ PC · 모바일 동기화 화면 (엔진은 mod-sync.js) =================
+   무한매수와 같은 Gist(muhan-sync)의 worklog.json. 이 화면은 '저장할 때 바뀐 날짜 표시'와 '설정·상태 표시'만 맡음 */
+const SYNC_META='worklog.sync.meta';
 const snapOf=d=>{ const o={}; for(const k in d) o[k]=JSON.stringify(d[k]); return o; };
-let __snap=snapOf(data), __syncTimer=null;
+let __snap=snapOf(data);
 const __save=save;
 save=function(){                       // 저장할 때마다 바뀐 날짜·지운 날짜에 시각을 남김
-  const now=Date.now(), cur=snapOf(data), m=syncMeta(); let ch=false;
+  const now=Date.now(), cur=snapOf(data), m=metaOf(SYNC_META); let ch=false;
   for(const k in cur) if(cur[k]!==__snap[k]){ m.mt[k]=now; delete m.del[k]; ch=true; }
   for(const k in __snap) if(!(k in cur)){ m.del[k]=now; delete m.mt[k]; ch=true; }
   __snap=cur;
-  if(ch){ m.dirty=true; saveSyncMeta(m); }
+  if(ch){ m.dirty=true; ls.set(SYNC_META,JSON.stringify(m)); }
   __save();
-  if(ch) syncSchedule(1500);
+  if(ch) sync.schedule(1500);
 };
-function syncSchedule(ms){ if(!syncTok()||!syncGist()) return; clearTimeout(__syncTimer); __syncTimer=setTimeout(()=>syncNow('auto'),ms); }
-async function gh(path,opt){
-  opt=opt||{};
-  const headers={Authorization:'Bearer '+syncTok(),Accept:'application/vnd.github+json'};
-  if(opt.body) headers['Content-Type']='application/json';
-  let r;
-  try{ r=await fetch('https://api.github.com'+path,{method:opt.method||'GET',headers,body:opt.body,cache:'no-store'}); }
-  catch(e){ throw new Error('인터넷 연결 없음 · 연결되면 자동으로 다시 맞춥니다'); }
-  if(r.status===401) throw new Error('토큰이 틀렸거나 만료됐습니다. 새 토큰으로 다시 연결하세요');
-  if(r.status===403||r.status===404) throw new Error('토큰에 gist 권한이 없거나 동기화 Gist를 찾을 수 없습니다 ('+r.status+')');
-  if(!r.ok) throw new Error('GitHub 응답 오류 '+r.status);
-  return r.json();
-}
-function mergeDocs(L,R){
-  const now=Date.now(), out={data:{},mt:{},del:{}};
-  const keys=new Set([...Object.keys(L.data||{}),...Object.keys(R.data||{}),...Object.keys(L.del||{}),...Object.keys(R.del||{})]);
-  keys.forEach(k=>{
-    const lv=(L.data||{})[k], rv=(R.data||{})[k];
-    const lm=lv?((L.mt||{})[k]||0):-1, rm=rv?((R.mt||{})[k]||0):-1;
-    const dT=Math.max((L.del||{})[k]||0,(R.del||{})[k]||0);
-    let val=null, mt=-1;
-    if(lv&&rv){
-      if(JSON.stringify(lv)===JSON.stringify(rv)){ val=lv; mt=Math.max(lm,rm); }
-      else if(lm>rm){ val=lv; mt=lm; }
-      else if(rm>lm){ val=rv; mt=rm; }
-      else { val=Object.assign({},rv,lv); mt=now; }          // 시각이 같으면 항목별로 합침
-    } else if(lv){ val=lv; mt=lm; } else if(rv){ val=rv; mt=rm; }
-    if(val&&mt>=dT){ out.data[k]=val; if(mt>0) out.mt[k]=mt; }
-    else if(dT>0) out.del[k]=dT;
-  });
-  return out;
-}
-const canonData=d=>JSON.stringify(Object.keys(d||{}).sort().map(k=>[k,d[k]]));
-const canonMap=d=>JSON.stringify(Object.keys(d||{}).sort().map(k=>[k,d[k]]));
-let __syncBusy=false, __syncAgain=false, __syncErr='';
-async function syncNow(why){
-  if(!syncTok()||!syncGist()){ syncRender(); return; }
-  if(__syncBusy){ __syncAgain=true; return; }
-  __syncBusy=true; syncRender('busy');
-  let note='';
-  try{
-    const g=await gh('/gists/'+syncGist());
-    const f=g.files&&g.files[SYNC.file];
-    let R={}; try{ R=f&&f.content?JSON.parse(f.content):{}; }catch(e){ R={}; }
-    R.data=normalize(R.data||{});
-    const meta=syncMeta();
-    const L={data,mt:meta.mt,del:meta.del};
-    const M=mergeDocs(L,R);
-    if(canonData(M.data)!==canonData(data)){
-      const before=Object.keys(data).length, after=Object.keys(M.data).length;
-      data=M.data; __snap=snapOf(data); __save(); renderAll();
-      note=after>before?`다른 기기 기록 ${after-before}일 추가됨`:after<before?`다른 기기에서 지운 ${before-after}일 반영`:'다른 기기 변경 반영';
-    }
-    if(canonData(M.data)!==canonData(R.data)||canonMap(M.mt)!==canonMap(R.mt||{})||canonMap(M.del)!==canonMap(R.del||{})){
-      const doc={schema:'muhan-sync/1',app:'worklog',version:APP_VERSION,updated:new Date().toISOString(),device:syncDevice(),data:M.data,mt:M.mt,del:M.del};
-      await gh('/gists/'+syncGist(),{method:'PATCH',body:JSON.stringify({files:{[SYNC.file]:{content:JSON.stringify(doc)}}})});
-      if(!note) note='이 기기 변경을 올렸습니다';
-    }
-    meta.mt=M.mt; meta.del=M.del; meta.last=Date.now(); meta.dirty=false; meta.note=note||meta.note||'';
-    saveSyncMeta(meta); __syncErr='';
-    if(note&&why!=='load') toast('☁ '+note);
-  }catch(e){ __syncErr=e.message; }
-  finally{ __syncBusy=false; syncRender(); if(__syncAgain){ __syncAgain=false; syncSchedule(300); } }
-}
+sync.configure({version:APP_VERSION});
+sync.register({file:'worklog.json',app:'worklog',mk:SYNC_META,norm:normalize,get:()=>data,set:d=>{
+  const before=Object.keys(data).length, after=Object.keys(d).length;
+  data=d; __snap=snapOf(data); __save(); renderAll();
+  return after>before?`다른 기기 기록 ${after-before}일 추가됨`:after<before?`다른 기기에서 지운 ${before-after}일 반영`:'다른 기기 변경 반영';
+}});
+bus.on('data:changed',why=>{ if(why&&why!=='load'){ const n=metaOf(SYNC_META).note; if(n) toast('☁ '+n); } });
 function syncRender(state){
   const st=$('syncState'), chip=$('syncChip'); if(!st) return;
-  const on=!!(syncTok()&&syncGist()), meta=syncMeta();
+  const on=sync.isOn(), meta=metaOf(SYNC_META), err=sync.err();
   $('syncSetup').hidden=on; $('syncOn').hidden=!on; chip.hidden=!on;
   st.className='sync-state'; chip.className='sync-chip';
   if(!on){ st.textContent='동기화 꺼짐 · 이 기기에만 저장 중. 토큰을 붙여넣고 연결하면 PC와 폰이 같은 기록을 씁니다.'; return; }
   if(state==='busy'){ st.textContent='☁ 동기화 중…'; chip.textContent='☁ 동기화 중'; return; }
-  if(__syncErr){ st.classList.add('err'); chip.classList.add('err'); chip.textContent='☁ 확인 필요'; st.textContent='⚠ '+__syncErr+(meta.dirty?' · 이 기기 변경은 저장돼 있고 연결되면 올라갑니다.':''); return; }
+  if(err){ st.classList.add('err'); chip.classList.add('err'); chip.textContent='☁ 확인 필요'; st.textContent='⚠ '+err+(meta.dirty?' · 이 기기 변경은 저장돼 있고 연결되면 올라갑니다.':''); return; }
   const t=meta.last?new Date(meta.last).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'-';
   st.classList.add('ok'); chip.classList.add('ok'); chip.textContent='☁ 동기화됨';
-  st.textContent=`✅ 동기화 켜짐 (${syncDevice()}) · 기록 ${Object.keys(data).length}일 · 마지막 ${t}`+(meta.note?` · ${meta.note}`:'');
+  st.textContent=`✅ 동기화 켜짐 (${sync.device()}) · 기록 ${Object.keys(data).length}일 · 마지막 ${t}`+(meta.note?` · ${meta.note}`:'');
 }
+bus.on('sync:state',syncRender);
 function syncSetupErr(msg){ syncRender(); const e=$('syncState'); e.className='sync-state err'; e.textContent='⚠ '+msg; }
 $('syncConnectBtn').onclick=async()=>{
   const btn=$('syncConnectBtn'), inp=$('syncToken'), tok=inp.value.trim();
   if(!/^(ghp_|github_pat_)[A-Za-z0-9_]{20,}$/.test(tok)){ syncSetupErr('토큰 형식이 아닙니다. ghp_로 시작하는 토큰 전체를 붙여넣으세요'); return; }
-  btn.disabled=true; btn.textContent='연결 중…'; ls.set(SYNC.tok,tok);
-  try{
-    let id='';
-    for(let page=1; page<=3&&!id; page++){
-      const list=await gh(`/gists?per_page=100&page=${page}`);
-      const hit=list.find(x=>x.description===SYNC.desc); if(hit) id=hit.id;
-      if(list.length<100) break;
-    }
-    if(!id){
-      const g=await gh('/gists',{method:'POST',body:JSON.stringify({description:SYNC.desc,public:false,files:{'worklog.json':{content:JSON.stringify({schema:'muhan-sync/1',data:{},mt:{},del:{}})}}})});
-      id=g.id;
-    }
-    ls.set(SYNC.gist,id); inp.value=''; __syncErr='';
-    await syncNow('connect');
-  }catch(e){ ls.del(SYNC.tok); ls.del(SYNC.gist); syncSetupErr(e.message); }
+  btn.disabled=true; btn.textContent='연결 중…';
+  try{ await sync.connect(tok); inp.value=''; }
+  catch(e){ syncSetupErr(e.message); }
   finally{ btn.disabled=false; btn.textContent='☁️ 연결하고 동기화 시작'; }
 };
-$('syncNowBtn').onclick=()=>syncNow('manual');
+$('syncNowBtn').onclick=()=>sync.now('manual');
 let __offArm=0;
 $('syncOffBtn').onclick=()=>{
   const b=$('syncOffBtn');
   if(Date.now()-__offArm>4000){ __offArm=Date.now(); b.textContent='한 번 더 = 해제'; setTimeout(()=>b.textContent='연결 해제',4000); return; }
-  ls.del(SYNC.tok); ls.del(SYNC.gist); __syncErr=''; b.textContent='연결 해제'; syncRender(); toast('이 기기의 동기화를 껐습니다 (기록은 그대로)');
+  sync.disconnect(); b.textContent='연결 해제'; toast('이 기기의 동기화를 껐습니다 (기록은 그대로)');
 };
-document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&Date.now()-syncMeta().last>15000) syncSchedule(200); });
-window.addEventListener('online',()=>syncSchedule(500));
-setInterval(()=>{ if(!document.hidden&&!busy()) syncSchedule(100); },90000);
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&Date.now()-metaOf(SYNC_META).last>15000) sync.schedule(200); });
+window.addEventListener('online',()=>sync.schedule(500));
+setInterval(()=>{ if(!document.hidden&&!busy()) sync.schedule(100); },90000);
 syncRender();
-syncSchedule(400);
+sync.schedule(400);
 </script>
 </body>
 </html>
