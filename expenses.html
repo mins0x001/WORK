@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>가계부 V1.05 (2026-10-27)</title>
+<title>가계부 V1.06 (2026-10-27)</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
@@ -197,15 +197,16 @@ textarea{width:100%;min-height:150px;border-radius:12px;border:1.5px solid var(-
 <input type="file" id="rsFile" accept=".json,application/json" hidden>
 <div class="toast" id="toast"></div>
 
-<script src="mod-base.js?v=1.05-2026-10-27"></script>
-<script src="mod-card.js?v=1.05-2026-10-27"></script>
-<script src="mod-sync.js?v=1.05-2026-10-27"></script>
-<script src="mod-ledger.js?v=1.05-2026-10-27"></script>
+<script src="mod-base.js?v=1.06-2026-10-27"></script>
+<script src="mod-card.js?v=1.06-2026-10-27"></script>
+<script src="mod-sync.js?v=1.06-2026-10-27"></script>
+<script src="mod-ledger.js?v=1.06-2026-10-27"></script>
 <script>
 const {$,WD,XL,bus,escH,fmt,keyOf,ls,metaOf,pad,parseKey,rj,toast}=M.base;
 const sync=M.sync;
 const {CATN,CATS,CAT_DEF,E,EK,EM,FIXED_G,GICON,GNAMES,allTx,brandOf,catOf,groupOf,replaceE,sumV,touch}=M.ledger;
 /* ================= 버전 정보 (하드코딩) =================
+   V1.06 (2026-10-27): 집계(mod-stats)·내보내기(mod-export) 모듈 분리, 전 파일 점검
    V1.05 (2026-10-27): 대리점 카드에 전화번호로 지도 여는 버튼(번호지도) 추가
    V1.04 (2026-10-27): 입력란에서 로그인 자동입력창이 뜨지 않게 처리
    V1.03 (2026-10-27): 서울 구 순서 고정: 노원·도봉·강북·성북·중랑·동대문·광진
@@ -214,7 +215,7 @@ const {CATN,CATS,CAT_DEF,E,EK,EM,FIXED_G,GICON,GNAMES,allTx,brandOf,catOf,groupO
    V1.00 (2026-10-26): 버전 새로 시작 — 가계부 — 월·연 분석, 생활·업무·기타 분류, 고정지출, 원본 보관·엑셀 내보내기, 동기화
    구조: 공통 코드는 독립 모듈(mod-*.js)로 분리, 이 파일은 화면만 담당 */
 const APP_NAME    = '가계부';
-const APP_VERSION = '1.05';
+const APP_VERSION = '1.06';
 const BUILD_DATE  = '2026-10-27';
 sync.configure({version:APP_VERSION});
 

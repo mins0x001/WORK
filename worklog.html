@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>업무일지 V1.05 (2026-10-27)</title>
+<title>업무일지 V1.06 (2026-10-27)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
@@ -648,16 +648,21 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 
 <div class="toast" id="toast"></div>
 
-<script src="mod-base.js?v=1.05-2026-10-27"></script>
-<script src="mod-sync.js?v=1.05-2026-10-27"></script>
-<script src="mod-holiday.js?v=1.05-2026-10-27"></script>
-<script src="mod-dealer.js?v=1.05-2026-10-27"></script>
+<script src="mod-base.js?v=1.06-2026-10-27"></script>
+<script src="mod-sync.js?v=1.06-2026-10-27"></script>
+<script src="mod-holiday.js?v=1.06-2026-10-27"></script>
+<script src="mod-dealer.js?v=1.06-2026-10-27"></script>
+<script src="mod-stats.js?v=1.06-2026-10-27"></script>
+<script src="mod-export.js?v=1.06-2026-10-27"></script>
 <script>
-const {$,CARD_CATS,WD,XL,addDays,bus,escH,keyOf,metaOf,pad,parseKey}=M.base;
+const {$,CARD_CATS,WD,addDays,bus,escH,keyOf,metaOf,pad,parseKey}=M.base;
 const sync=M.sync;
 const {holNames,holidaysOf}=M.holiday;
 const {BYNAME,DISTANCE_EDGES,ROWS,TIER_COUNTS,TIER_LABELS,getDistance,kmShort,kmText,normAddr,routeInfo}=M.dealer;
+const {MAX_STOPS,RENAMED,ROUNDS,SHIFT,dayRouteKmIn,normalize,odoFor,periodOf,rangeOf,roundTextIn,roundsIn,statsFor}=M.stats;
+const {buildWorkbookFor,csvRowsFor}=M.export;
 /* ================= 버전 정보 (하드코딩) =================
+   V1.06 (2026-10-27): 집계(mod-stats)·내보내기(mod-export) 모듈 분리, 전 파일 점검
    V1.05 (2026-10-27): 대리점 카드에 전화번호로 지도 여는 버튼(번호지도) 추가
    V1.04 (2026-10-27): 입력란에서 로그인 자동입력창이 뜨지 않게 처리
    V1.03 (2026-10-27): 서울 구 순서 고정: 노원·도봉·강북·성북·중랑·동대문·광진
@@ -666,7 +671,7 @@ const {BYNAME,DISTANCE_EDGES,ROWS,TIER_COUNTS,TIER_LABELS,getDistance,kmShort,km
    V1.00 (2026-10-26): 버전 새로 시작 — 업무일지 — 대리점 조회·회전 저장, 근무 달력, 연간 집계, 동기화
    구조: 공통 코드는 독립 모듈(mod-*.js)로 분리, 이 파일은 화면만 담당 */
 const APP_NAME    = '업무일지';
-const APP_VERSION = '1.05';
+const APP_VERSION = '1.06';
 const BUILD_DATE  = '2026-10-27';
 
 /* ================= 데이터 모델 =================
@@ -675,72 +680,12 @@ const BUILD_DATE  = '2026-10-27';
    v1.0(문자열 값)·v1.1~v1.4 데이터 자동 호환 (저장 위치 그대로: worklog.data.v2)            */
 const KEY_V2='worklog.data.v2', KEY_V1='worklog.data.v1';
 const K_SAVED=KEY_V2+'.savedAt', K_BACKUP='worklog.lastBackup', K_SNAP='worklog.snapshot';
-const SHIFT={
-  '1':  {label:'1회전',cls:'t1',color:'var(--t1)'},
-  '2':  {label:'2회전',cls:'t2',color:'var(--t2)'},
-  '3':  {label:'3회전',cls:'t3',color:'var(--t3)'},
-  'off':{label:'휴무', cls:'off',color:'var(--off)'}
-};
-const NUMF=['odo','fuel','toll','urea'];
-const ROUNDS=['1','2','3'];
-const MAX_STOPS=40;
-const RENAMED={'충남(의정부)':'충남','의충남':'충남','충남(장안)':'장충남','C동우':'동우'};      // 이름이 바뀐 대리점: 예전 이름으로 저장된 회전 기록·검색어를 새 이름으로
-
 const lsRaw=k=>{ try{ return localStorage.getItem(k); }catch(e){ return null; } };
 const ls={
   get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
   set(k,v){ try{ localStorage.setItem(k,v); return true; }catch(e){ return false; } },
   del(k){ try{ localStorage.removeItem(k); }catch(e){} }
 };
-function normRounds(src){
-  if(!src||typeof src!=='object') return null;
-  const out={};
-  ROUNDS.forEach(n=>{
-    const t=src[n]; if(!t||!Array.isArray(t.st)) return;
-    const st=[];
-    t.st.forEach(x=>{
-      if(typeof x==='string') x={n:x};
-      if(!x||typeof x.n!=='string'||!x.n.trim()||st.length>=MAX_STOPS) return;
-      const nm=x.n.trim().slice(0,20);
-      const o={n:RENAMED[nm]||nm};
-      if(typeof x.c==='string'&&x.c.trim()) o.c=x.c.trim().slice(0,30);
-      st.push(o);
-    });
-    if(st.length) out[n]={st};
-  });
-  return Object.keys(out).length?out:null;
-}
-/* cd = 그날 반영한 카드 결제 [{id:'날짜#승인번호', tm:'17:32', m:'가맹점', v:금액, c:'fuel'|'urea'|'toll'}] */
-function normCard(a){
-  if(!Array.isArray(a)) return null;
-  const out=[], seen=new Set();
-  a.forEach(e=>{
-    if(!e||typeof e.id!=='string'||!e.id||seen.has(e.id)||!CARD_CATS[e.c]) return;
-    const v=Math.round(Number(e.v)); if(!Number.isFinite(v)||v<=0) return;
-    seen.add(e.id);
-    const o={id:e.id.slice(0,80),m:String(e.m||'').trim().slice(0,40),v,c:e.c};
-    if(typeof e.tm==='string'&&/^\d{2}:\d{2}$/.test(e.tm)) o.tm=e.tm;
-    out.push(o);
-  });
-  return out.length?out.slice(0,40):null;
-}
-function normalize(src){
-  const out={};
-  for(const k in src){
-    if(!/^\d{4}-\d{2}-\d{2}$/.test(k)) continue;
-    let v=src[k];
-    if(typeof v==='string') v={s:v};
-    if(!v||typeof v!=='object') continue;
-    const r={};
-    if(SHIFT[v.s]) r.s=v.s;
-    NUMF.forEach(f=>{ const n=Number(v[f]); if(Number.isFinite(n)&&n>0) r[f]=Math.round(n); });
-    if(typeof v.hol==='string'&&v.hol.trim()) r.hol=v.hol.trim().slice(0,12);
-    const rr=normRounds(v.r); if(rr) r.r=rr;
-    const cd=normCard(v.cd); if(cd) r.cd=cd;
-    if(Object.keys(r).length) out[k]=r;
-  }
-  return out;
-}
 function load(){
   try{
     const v2=ls.get(KEY_V2); if(v2) return normalize(JSON.parse(v2));
@@ -765,45 +710,16 @@ const nowKey=()=>keyOf(new Date());
 let today=new Date(); today.setHours(0,0,0,0);
 let todayKey=keyOf(today);
 
-/* ================= 근무 기간 ================= */
-function periodOf(d){ let y=d.getFullYear(),m=d.getMonth(); if(d.getDate()>=25){ m++; if(m>11){m=0;y++;} } return {y,m}; }
-function rangeOf(p){ return {start:new Date(p.y,p.m-1,25), end:new Date(p.y,p.m,24)}; }
-
 /* ================= 회전 기록 읽기 ================= */
-function roundsOf(k){
-  const r=(data[k]||{}).r||{};
-  return ROUNDS.filter(n=>r[n]&&r[n].st&&r[n].st.length).map(n=>({n,st:r[n].st,names:r[n].st.map(s=>s.n)}));
-}
+/* ================= 집계 연결 (계산은 mod-stats, 여기서는 현재 data만 넘김) ================= */
+const roundsOf=k=>roundsIn(data,k);
+const statsOf=p=>statsFor(data,p);
+const odoOf=p=>odoFor(data,p);
+const roundText=(k,n)=>roundTextIn(data,k,n);
+const dayRouteKm=k=>dayRouteKmIn(data,k);
 /* 회전 한 줄: [1] 국도 → 의기아 → 새론   47km */
 function roundLine(x){
   return `<span class="rl"><i class="rc r${x.n}">${x.n}</i><span class="rl-t">${escH(x.names.join(' → '))}</span><em class="num">${kmShort(routeInfo(x.names))}</em></span>`;
-}
-
-/* ================= 집계 엔진 ================= */
-function statsOf(p){
-  const {start,end}=rangeOf(p);
-  const c={'1':0,'2':0,'3':0,off:0,none:0,days:0,fuel:0,toll:0,urea:0,fuelN:0,tollN:0,ureaN:0,hol:0,trips:0,stops:0,rkm:0,runk:0};
-  for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
-    const k=keyOf(d), r=data[k]||{}; c.days++;
-    if(r.s) c[r.s]++; else c.none++;
-    if(holNames(k,(data[k]||{}).hol).length) c.hol++;
-    ['fuel','toll','urea'].forEach(f=>{ if(r[f]){ c[f]+=r[f]; c[f+'N']++; } });
-    roundsOf(k).forEach(x=>{ const i=routeInfo(x.names); c.trips++; c.stops+=x.st.length; c.rkm+=i.km; c.runk+=i.unk; });
-  }
-  c.rkm=Math.round(c.rkm*10)/10;
-  c.work=c['1']+c['2']+c['3']; c.cost=c.fuel+c.toll+c.urea; c.odo=odoOf(p);
-  return c;
-}
-function odoOf(p){
-  const {start,end}=rangeOf(p);
-  const sK=keyOf(start), eK=keyOf(end), pK=keyOf(addDays(start,-1));
-  let sv=data[sK]&&data[sK].odo, sSrc='start';
-  if(!sv&&data[pK]&&data[pK].odo){ sv=data[pK].odo; sSrc='prev'; }
-  const ev=data[eK]&&data[eK].odo;
-  const o={start:sv||null,end:ev||null,sSrc,sK,eK,pK,dist:null,state:'none'};
-  if(sv&&ev){ o.dist=ev-sv; o.state=o.dist<0?'neg':'ok'; }
-  else if(sv) o.state='noEnd'; else if(ev) o.state='noStart';
-  return o;
 }
 
 /* ================= 일지 화면 (달력 · 회전 기록 · 집계) ================= */
@@ -1404,18 +1320,11 @@ $('undoBtn').onclick=()=>{
 };
 
 /* CSV (일별 기록) */
-const roundText=(k,n)=>{ const t=((data[k]||{}).r||{})[n]; return t?t.st.map(s=>s.n).join(' → '):''; };
-const dayRouteKm=k=>roundsOf(k).reduce((x,r)=>x+routeInfo(r.names).km,0);
 $('csvBtn').onclick=async()=>{
   const keys=Object.keys(data).sort();
   if(!keys.length){ toast('내보낼 기록이 없습니다'); return; }
   const esc=v=>{ v=String(v??''); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; };
-  const rows=[['날짜','요일','근무기간','공휴일','근무','계기판(km)','주유(원)','통행료(원)','요소수(원)','1회전','2회전','3회전','회전 경로(km)']];
-  keys.forEach(k=>{
-    const d=parseKey(k), r=data[k], p=periodOf(d);
-    rows.push([k,WD[d.getDay()],`${p.y}-${pad(p.m+1)}`,holNames(k,(data[k]||{}).hol).join('/'),r.s?SHIFT[r.s].label:'',r.odo||'',r.fuel||'',r.toll||'',r.urea||'',
-      roundText(k,'1'),roundText(k,'2'),roundText(k,'3'),r.r?dayRouteKm(k):'']);
-  });
+  const rows=csvRowsFor(data);
   await deliverFile(`${APP_NAME}_기록_V${APP_VERSION}_${stamp()}.csv`,'﻿'+rows.map(r=>r.map(esc).join(',')).join('\r\n'),'text/csv');
 };
 
@@ -1514,62 +1423,7 @@ function renderSheetCard(){
   el.hidden=!cd.length;
   el.innerHTML=cd.length?`💳 카드 결제 ${cd.length}건 · <b class="num">${fmt(cd.reduce((x,e)=>x+e.v,0))}원</b>`+cd.map(e=>`<br>${e.tm?`<span class="num">${e.tm}</span> `:''}${escH(e.m)} ${CARD_CATS[e.c].ic} <b class="num">${fmt(e.v)}</b>`).join(''):''
 }
-function buildWorkbook(){
-  const keys=Object.keys(data).sort();
-  const Hd=s=>({v:s,s:1});
-  // ① 월별요약: 기록이 있는 근무 기간만
-  const seen=new Set(), periods=[];
-  keys.forEach(k=>{ const p=periodOf(parseKey(k)), id=p.y*12+p.m; if(!seen.has(id)){ seen.add(id); periods.push(p); } });
-  periods.sort((a,b)=>(a.y*12+a.m)-(b.y*12+b.m));
-  const sum=[[Hd('근무기간'),Hd('시작일'),Hd('종료일'),Hd('근무일'),Hd('1회전'),Hd('2회전'),Hd('3회전'),Hd('휴무'),Hd('운행 km'),Hd('주유(원)'),Hd('통행료(원)'),Hd('요소수(원)'),Hd('비용 합계(원)'),Hd('저장 회전'),Hd('방문 대리점'),Hd('회전 경로 km')]];
-  const tot=periods.map(statsOf);
-  periods.forEach((p,i)=>{
-    const c=tot[i], r=rangeOf(p);
-    sum.push([`${p.y}-${pad(p.m+1)}`,{d:keyOf(r.start)},{d:keyOf(r.end)},{v:c.work,s:4},{v:c['1'],s:4},{v:c['2'],s:4},{v:c['3'],s:4},{v:c.off,s:4},
-      c.odo.state==='ok'?{v:c.odo.dist,s:4}:'',{v:c.fuel,s:4},{v:c.toll,s:4},{v:c.urea,s:4},{v:c.cost,s:4},{v:c.trips,s:4},{v:c.stops,s:4},{v:c.rkm,s:4}]);
-  });
-  if(periods.length){
-    const n=periods.length+1, S=(col,val)=>({f:`SUM(${col}2:${col}${n})`,v:val,s:4});
-    const t=f=>tot.reduce((x,c)=>x+f(c),0);
-    sum.push([{v:'합계',s:7},'','',S('D',t(c=>c.work)),S('E',t(c=>c['1'])),S('F',t(c=>c['2'])),S('G',t(c=>c['3'])),S('H',t(c=>c.off)),
-      S('I',t(c=>c.odo.state==='ok'?c.odo.dist:0)),S('J',t(c=>c.fuel)),S('K',t(c=>c.toll)),S('L',t(c=>c.urea)),S('M',t(c=>c.cost)),
-      S('N',t(c=>c.trips)),S('O',t(c=>c.stops)),S('P',t(c=>c.rkm))]);
-  }
-  // ② 일별기록
-  const day=[[Hd('날짜'),Hd('요일'),Hd('근무기간'),Hd('공휴일'),Hd('근무'),Hd('계기판(km)'),Hd('주유(원)'),Hd('통행료(원)'),Hd('요소수(원)'),Hd('1회전'),Hd('2회전'),Hd('3회전'),Hd('회전 경로 km')]];
-  keys.forEach(k=>{
-    const d=parseKey(k), r=data[k], p=periodOf(d);
-    day.push([{d:k},WD[d.getDay()],`${p.y}-${pad(p.m+1)}`,holNames(k,(data[k]||{}).hol).join('/'),r.s?SHIFT[r.s].label:'',
-      r.odo?{v:r.odo,s:4}:'',r.fuel?{v:r.fuel,s:4}:'',r.toll?{v:r.toll,s:4}:'',r.urea?{v:r.urea,s:4}:'',
-      roundText(k,'1'),roundText(k,'2'),roundText(k,'3'),r.r?{v:dayRouteKm(k),s:4}:'']);
-  });
-  // ③ 회전기록: 방문 대리점 한 곳당 한 줄
-  const trip=[[Hd('날짜'),Hd('요일'),Hd('근무기간'),Hd('회전'),Hd('순서'),Hd('대리점'),Hd('코드'),Hd('전화'),Hd('주소'),Hd('회전 경로 km'),Hd('확인 필요 구간')]];
-  keys.forEach(k=>roundsOf(k).forEach(x=>{
-    const d=parseKey(k), p=periodOf(d), info=routeInfo(x.names);
-    x.st.forEach((s,i)=>{
-      const row=BYNAME.get(s.n);
-      trip.push([{d:k},WD[d.getDay()],`${p.y}-${pad(p.m+1)}`,`${x.n}회전`,{v:i+1,s:4},s.n,row?row.codes.join(', '):(s.c||''),row?row.phone:'',row?(row.address||''):'',
-        i===0?{v:info.km,s:4}:'',i===0&&info.unk?{v:info.unk,s:4}:'']);
-    });
-  }));
-  // ④ 대리점목록 · ⑤ 거리표
-  const list=[[Hd('권역'),Hd('대리점명'),Hd('코드1'),Hd('코드2'),Hd('전화'),Hd('주소'),Hd('포천 기준 km')]];
-  ROWS.forEach(r=>list.push([TIER_LABELS[r.tier].replace(/^\S+\s/,''),r.name,r.codes[0]||'',r.codes[1]||'',r.phone,r.address||'',r.dist?{v:r.dist}:'']));
-  const edge=[[Hd('출발'),Hd('도착'),Hd('km'),Hd('비고')]];
-  DISTANCE_EDGES.forEach(e=>edge.push([e.from,e.to,{v:e.km,s:4},e.note||'']));
-  // ⑥ 카드내역: 일지에 반영한 카드 결제
-  const card=[[Hd('날짜'),Hd('요일'),Hd('시각'),Hd('가맹점'),Hd('분류'),Hd('금액(원)')]];
-  keys.forEach(k=>((data[k]||{}).cd||[]).forEach(e=>{ const d=parseKey(k); card.push([{d:k},WD[d.getDay()],e.tm||'',e.m,CARD_CATS[e.c].label,{v:e.v,s:4}]); }));
-  return XL.build([
-    {name:'월별요약',cols:[10,12,12,8,7,7,7,7,10,12,12,12,14,10,12,13],freeze:true,rows:sum},
-    {name:'일별기록',cols:[12,6,10,16,8,12,11,11,11,30,30,30,13],freeze:true,rows:day},
-    {name:'회전기록',cols:[12,6,10,8,6,14,14,16,36,13,14],freeze:true,rows:trip},
-    {name:'대리점목록',cols:[16,14,9,9,16,36,13],freeze:true,rows:list},
-    {name:'거리표',cols:[12,12,8,12],freeze:true,rows:edge},
-    {name:'카드내역',cols:[12,6,8,30,9,12],freeze:true,rows:card}
-  ]);
-}
+const buildWorkbook=()=>buildWorkbookFor(data);
 $('xlsxBtn').onclick=async()=>{
   const m=$('xlsxMsg');
   try{
