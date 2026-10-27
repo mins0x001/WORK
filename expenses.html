@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>가계부 V1.07 (2026-10-27)</title>
+<title>가계부 V1.08 (2026-10-27)</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
@@ -64,6 +64,7 @@ main{padding:12px 12px 24px}
 .ins li:first-child{border-top:0}.ins b{color:var(--text)}
 .grp{border-top:1px solid var(--soft)}.grp:first-of-type{border-top:0}
 .grp summary{list-style:none;cursor:pointer;padding:10px 2px}
+.grp.sel>summary{background:rgba(94,234,212,.08);border-radius:10px;box-shadow:inset 3px 0 0 var(--glow);padding-left:8px}
 .grp summary::-webkit-details-marker{display:none}
 .g1{display:flex;align-items:center;gap:8px}
 .g1 .ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:var(--panel-3);font-size:15px;flex:none}
@@ -197,15 +198,16 @@ textarea{width:100%;min-height:150px;border-radius:12px;border:1.5px solid var(-
 <input type="file" id="rsFile" accept=".json,application/json" hidden>
 <div class="toast" id="toast"></div>
 
-<script src="mod-base.js?v=1.07-2026-10-27"></script>
-<script src="mod-card.js?v=1.07-2026-10-27"></script>
-<script src="mod-sync.js?v=1.07-2026-10-27"></script>
-<script src="mod-ledger.js?v=1.07-2026-10-27"></script>
+<script src="mod-base.js?v=1.08-2026-10-27"></script>
+<script src="mod-card.js?v=1.08-2026-10-27"></script>
+<script src="mod-sync.js?v=1.08-2026-10-27"></script>
+<script src="mod-ledger.js?v=1.08-2026-10-27"></script>
 <script>
 const {$,WD,XL,bus,escH,fmt,keyOf,ls,metaOf,pad,parseKey,rj,toast}=M.base;
 const sync=M.sync;
-const {CATN,CATS,CAT_DEF,E,EK,EM,FIXED_G,GICON,GNAMES,allTx,brandOf,catOf,groupOf,replaceE,sumV,touch}=M.ledger;
+const {CATN,CATS,CAT_DEF,E,EK,EM,FIXED_G,GICON,GNAMES,allTx,brandOf,catOf,groupOf,pickGroup,replaceE,sumV,touch}=M.ledger;
 /* ================= 버전 정보 (하드코딩) =================
+   V1.08 (2026-10-27): 가계부: 세부 항목(통신비·주유 등)을 누르면 아래 내역이 그 항목만 표시
    V1.07 (2026-10-27): 카드 올리기: 신한형(거래일+시각 한 칸·취소 승인번호 다름) 호환, 해외이용금액 칸 오인 수정, 취소 상계 강화
    V1.06 (2026-10-27): 집계(mod-stats)·내보내기(mod-export) 모듈 분리, 전 파일 점검
    V1.05 (2026-10-27): 대리점 카드에 전화번호로 지도 여는 버튼(번호지도) 추가
@@ -216,7 +218,7 @@ const {CATN,CATS,CAT_DEF,E,EK,EM,FIXED_G,GICON,GNAMES,allTx,brandOf,catOf,groupO
    V1.00 (2026-10-26): 버전 새로 시작 — 가계부 — 월·연 분석, 생활·업무·기타 분류, 고정지출, 원본 보관·엑셀 내보내기, 동기화
    구조: 공통 코드는 독립 모듈(mod-*.js)로 분리, 이 파일은 화면만 담당 */
 const APP_NAME    = '가계부';
-const APP_VERSION = '1.07';
+const APP_VERSION = '1.08';
 const BUILD_DATE  = '2026-10-27';
 sync.configure({version:APP_VERSION});
 
@@ -228,7 +230,8 @@ bus.on('sync:state',uiSync); bus.on('data:changed',uiChanged);
 const now0=new Date();
 let cur={y:now0.getFullYear(),m:now0.getMonth()};
 let curCat=ls.get('expenses.cat')||'all';                 // 'all' | 'life' | 'work' | 'etc'
-const setCat=c=>{ curCat=(c===curCat?'all':c); ls.set('expenses.cat',curCat); renderAll(); };
+let curGrp='';                                            // 세부(통신비·주유 등)를 눌러 고른 항목 — 아래 내역에 그 항목만 보임
+const setCat=c=>{ curGrp=''; curCat=(c===curCat?'all':c); ls.set('expenses.cat',curCat); renderAll(); };
 const ym=(y,m)=>{ while(m<0){m+=12;y--;} while(m>11){m-=12;y++;} return {y,m}; };
 const inCat=(r,c)=>c==='all'||catOf(r)===c;
 const monTx=(y,m,c='all')=>{ const p=`${y}-${pad(m+1)}`; return allTx().filter(r=>r.d.startsWith(p)&&inCat(r,c)); };
@@ -257,15 +260,17 @@ function renderMon(){
   const cs=c=>sumV(A.filter(r=>catOf(r)===c)), pcs=c=>sumV(PA.filter(r=>catOf(r)===c));
   const T=curCat==='all'?A:A.filter(r=>catOf(r)===curCat), P=curCat==='all'?PA:PA.filter(r=>catOf(r)===curCat), sel=sumV(T);
   const G=aggregate(T), PG=aggregate(P), gl=Object.values(G).sort((a,b)=>b.sum-a.sum), max=gl.length?gl[0].sum:1;
+  if(curGrp&&!G[curGrp]) curGrp='';                                  // 달·분류를 바꿔 없어진 항목이면 해제
+  const TS=pickGroup(T,curGrp);
   $('cGrp').innerHTML=`<div class="ch"><h2>어디에 썼나</h2><small>눌러서 그 분류만 보기</small></div>
     <div class="cats">${CATS.map(([c,n,ic])=>{ const v=cs(c); return `<button class="cat${curCat===c?' on':''}" type="button" data-cat="${c}"><span>${ic} ${n}</span><b class="num">${fmt(v)}</b><small>${tot?Math.round(v/tot*100):0}%${ptot?` · ${dTxt(v,pcs(c))}`:''}</small></button>`; }).join('')}</div>
     <div class="ch" style="margin:14px 0 4px"><h2 style="font-size:14px">${catTitle()} 세부</h2><small class="num">${fmt(sel)}원 · ${T.length}건</small></div>
     ${gl.length?gl.map(g=>{
-      const pg=PG[g.n]?PG[g.n].sum:0, br=Object.values(g.br).sort((a,b)=>b.sum-a.sum);
-      return `<details class="grp"><summary><div class="g1"><span class="ic">${GICON[g.n]||'📦'}</span><span class="nm">${escH(g.n)}<small>${g.cnt}회 · ${sel?Math.round(g.sum/sel*100):0}%</small></span><span class="am num">${fmt(g.sum)}${ptot?`<small class="${g.sum>pg?'up':g.sum<pg?'dn':''}">${dTxt(g.sum,pg)}</small>`:''}</span></div><div class="bar"><i style="width:${(g.sum/max*100).toFixed(1)}%"></i></div></summary>
+      const pg=PG[g.n]?PG[g.n].sum:0, br=Object.values(g.br).sort((a,b)=>b.sum-a.sum), pick=curCat!=='all';
+      return `<details class="grp${pick&&curGrp===g.n?' sel':''}"${pick&&curGrp===g.n?' open':''}><summary${pick?` data-grp="${escH(g.n)}"`:''}><div class="g1"><span class="ic">${GICON[g.n]||'📦'}</span><span class="nm">${escH(g.n)}<small>${g.cnt}회 · ${sel?Math.round(g.sum/sel*100):0}%</small></span><span class="am num">${fmt(g.sum)}${ptot?`<small class="${g.sum>pg?'up':g.sum<pg?'dn':''}">${dTxt(g.sum,pg)}</small>`:''}</span></div><div class="bar"><i style="width:${(g.sum/max*100).toFixed(1)}%"></i></div></summary>
         ${br.map(b=>`<div class="br"><span>${escH(b.b)} · ${b.cnt}회</span><b class="num">${fmt(b.sum)}</b></div>`).join('')}</details>`;
     }).join(''):'<div class="empty">이 달 지출이 없습니다.<br>카드 엑셀을 올리거나 ＋로 추가하세요.</div>'}
-    ${curCat!=='all'&&T.length?`<div class="ch" style="margin:14px 0 0"><h2 style="font-size:14px">${catTitle()} 내역</h2><small>눌러서 분류 옮기기·수정</small></div>${T.slice().sort((a,b)=>a.d===b.d?((b.t||'')>(a.t||'')?1:-1):(a.d<b.d?1:-1)).map(txRow).join('')}`:''}`;
+    ${curCat!=='all'&&T.length?`<div class="ch" style="margin:14px 0 0"><h2 style="font-size:14px">${curGrp?escH(curGrp)+' ':catTitle()+' '}내역</h2><small>${curGrp?`${TS.length}건 · ${fmt(sumV(TS))}원 · 다시 누르면 ${catTitle()} 전체`:'세부를 누르면 그 항목만 · 눌러서 분류 옮기기·수정'}</small></div>${TS.slice().sort((a,b)=>a.d===b.d?((b.t||'')>(a.t||'')?1:-1):(a.d<b.d?1:-1)).map(txRow).join('')}`:''}`;
   // 💡 소비 패턴 (최대 4줄)
   const ins=[], life=A.filter(r=>catOf(r)==='life'), plife=PA.filter(r=>catOf(r)==='life');
   if(ptot&&tot){
@@ -291,6 +296,7 @@ function renderMon(){
   $('impRes').innerHTML=L?`마지막 반영: <b>${escH(L.src)}</b> · ${L.from.slice(5).replace('-','/')}~${L.to.slice(5).replace('-','/')} · 새 결제 <b>${L.add}건</b>${L.dup?` · 중복 ${L.dup}건 제외`:''}${L.cancel?` · 취소 ${L.cancel}건 상계`:''} · 업무일지 <b>${L.days}일</b>`:'엑셀 파일이나 복사한 내역을 올리면 가계부와 업무일지에 자동으로 들어갑니다.';
 }
 document.addEventListener('click',e=>{ const b=e.target.closest('[data-cat]'); if(b) setCat(b.dataset.cat); });
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-grp]'); if(!b) return; e.preventDefault(); curGrp=(curGrp===b.dataset.grp?'':b.dataset.grp); renderAll(); });   // 세부 항목 누르면 아래 내역이 그 항목만
 $('cGrp').addEventListener('click',e=>{ const b=e.target.closest('.row'); if(b) openEdit(b.dataset.k); });
 function renderList(){
   const q=$('q').value.trim().toUpperCase();
@@ -307,7 +313,7 @@ function renderList(){
   });
   $('list').innerHTML=html;
 }
-$('lCats').addEventListener('click',e=>{ const b=e.target.closest('[data-catl]'); if(!b) return; curCat=b.dataset.catl; ls.set('expenses.cat',curCat); renderAll(); });
+$('lCats').addEventListener('click',e=>{ const b=e.target.closest('[data-catl]'); if(!b) return; curGrp=''; curCat=b.dataset.catl; ls.set('expenses.cat',curCat); renderAll(); });
 $('list').addEventListener('click',e=>{ const b=e.target.closest('.row'); if(b) openEdit(b.dataset.k); });
 $('q').addEventListener('input',renderList);
 let yv=now0.getFullYear();

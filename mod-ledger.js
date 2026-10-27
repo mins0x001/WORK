@@ -1,6 +1,6 @@
 /* mod-ledger.js — 가계부 기록 · 분류 · 고정지출 · 카드 반영(importCore)
    업무허브 · 업무일지 · 가계부가 함께 쓰는 독립 모듈. 공개 API만 M.ledger로 내보냄.
-   MODULE ledger V1.07 (2026-10-27) */
+   MODULE ledger V1.08 (2026-10-27) */
 (function(M){
 const {$,CARD_CATS,bus,ls,metaOf,pad,rj,toast}=M.base;
 const {BIKE_MAX,LPG_RE,STATION_RE,classifyCard,isBigFuel,netCardTx,normM}=M.card;
@@ -111,6 +111,8 @@ function recTx(){                         // 고정지출(주거비·대출 등 
   });
   return out;
 }
+/* 고른 세부(통신비·주유 등)의 결제만 남김 — 비우면 전체 */
+const pickGroup=(list,grp)=>grp?list.filter(r=>groupOf(r)===grp):list;
 const allTx=()=>Object.keys(E).filter(k=>k.startsWith('t:')).map(k=>Object.assign({key:k},E[k])).concat(recTx());
 const sumV=a=>a.reduce((x,r)=>x+r.v,0);
 
@@ -203,5 +205,5 @@ if(sync){
   bus.on('sync:merged',()=>{ if(migrateWork()) sync.schedule(800); });                    // 합친 뒤 업무일지의 충전소·바이크 비용 정리
 }
 migrateWork();
-M.ledger={CATN,CATS,CAT_DEF,E,EK,EM,FIXED_G,GICON,GNAMES,WK,allTx,brandOf,catOf,groupOf,importCore,importMsg,replaceE,sumV,touch,ymKey,migrateWork};
+M.ledger={CATN,CATS,CAT_DEF,E,EK,EM,FIXED_G,GICON,GNAMES,WK,allTx,brandOf,catOf,groupOf,importCore,importMsg,pickGroup,replaceE,sumV,touch,ymKey,migrateWork};
 })(window.M=window.M||{});
