@@ -1,6 +1,6 @@
 /* mod-dealer.js — 대리점 · 거리 데이터와 경로 계산
    업무허브 · 업무일지 · 가계부가 함께 쓰는 독립 모듈. 공개 API만 M.dealer로 내보냄.
-   MODULE dealer V1.01 (2026-10-27) */
+   MODULE dealer V1.02 (2026-10-27) */
 (function(M){
 /* ================= 대리점 · 거리 데이터 =================
    여기 데이터만 수정하면 됩니다 (대리점명 / 코드 / 전화번호 / 주소)
@@ -319,6 +319,7 @@ const DISTANCE_EDGES = [
 ];
 /* 주소 자동 정리: 시·도가 없으면 시/군 이름으로 채우고, "1층"·"101호" 같은 층·호수 표기는 지움 */
 const CITY_REGION = {의정부시:'경기도',남양주시:'경기도',포천시:'경기도',양주시:'경기도',동두천시:'경기도',구리시:'경기도',가평군:'경기도',연천군:'경기도',고양시:'경기도',파주시:'경기도',서울특별시:'서울특별시'};
+const SEOUL_GU = '종로구 중구 용산구 성동구 광진구 동대문구 중랑구 성북구 강북구 도봉구 노원구 은평구 서대문구 마포구 양천구 강서구 구로구 금천구 영등포구 동작구 관악구 서초구 강남구 송파구 강동구'.split(' ');
 function normAddr(a){
   a = String(a || '').trim();
   if (!a) return '';
@@ -328,6 +329,7 @@ function normAddr(a){
     return a.replace(/^경기 /, '경기도 ').replace(/^서울 /, '서울특별시 ').replace(/^서울시 /, '서울특별시 ');
   }
   const c = a.split(' ')[0];
+  if (SEOUL_GU.includes(c)) return '서울특별시 ' + a;
   return CITY_REGION[c] ? CITY_REGION[c] + ' ' + a : a;
 }
 ROWS.forEach(r => { r.address = normAddr(r.address); });
