@@ -25,13 +25,13 @@ const ROWS = [
   {"name": "우리", "codes": ["3251"], "phone": "031-844-5959", "tier": 1, "dist": null, "address": "경기 의정부시 녹양로 166"},
   {"name": "원창", "codes": ["1636"], "phone": "031-551-0581", "tier": 1, "dist": null, "address": "구리시 안골로 8"},
   {"name": "의기아", "codes": ["A969"], "phone": "031-842-5550", "tier": 1, "dist": 16.5, "address": "경기 의정부시 동일로 515"},
-  {"name": "충남", "codes": ["A522"], "phone": "031-842-7305", "tier": 1, "dist": null, "address": ""},
+  {"name": "충남", "codes": ["A522"], "phone": "031-842-7305", "tier": 1, "dist": null, "address": "경기도 의정부시 의정부동 216-52"},
   {"name": "인석", "codes": ["2244"], "phone": "031-557-2022", "tier": 1, "dist": null, "address": "구리시 안골로 24-1"},
   {"name": "장현", "codes": ["4049", "C180"], "phone": "031-572-9006", "tier": 1, "dist": null, "address": "경기도 남양주시 진접읍 금강로 1967"},
   {"name": "진원", "codes": ["2521"], "phone": "031-571-3232", "tier": 1, "dist": null, "address": "경기도 남양주시 송산로339번길 4-16"},
   {"name": "천호", "codes": ["A960"], "phone": "031-535-5183", "tier": 1, "dist": null, "address": "포천시 호국로 1377"},
   {"name": "포기", "codes": ["A983"], "phone": "031-541-1448", "tier": 1, "dist": null, "address": "포천시 호국로 1043"},
-  {"name": "현종", "codes": ["4356", "C164"], "phone": "031-544-8683", "tier": 1, "dist": null, "address": ""},
+  {"name": "현종", "codes": ["4356", "C164"], "phone": "031-544-8683", "tier": 1, "dist": null, "address": "경기도 포천시 소흘로24번길 55"},
   {"name": "협신", "codes": ["0968"], "phone": "031-563-6377", "tier": 1, "dist": null, "address": "구리시 안골로 18"},
   {"name": "경동", "codes": ["3512"], "phone": "02-2244-8879", "tier": 2, "dist": null, "address": "서울특별시 동대문구 전농로4길 62"},
   {"name": "나로", "codes": ["4343", "C155"], "phone": "02-2249-8894", "tier": 2, "dist": null, "address": "동대문구 천호대로77길 17"},
@@ -317,6 +317,19 @@ const DISTANCE_EDGES = [
   {"from": "사업소", "to": "동우", "km": 44, "note": ""},
   {"from": "새론", "to": "국도", "km": 1, "note": ""},
 ];
+/* 주소 자동 정리: 시·도가 없으면 시/군 이름으로 채우고, "1층" 같은 층 표기는 지움 */
+const CITY_REGION = {의정부시:'경기도',남양주시:'경기도',포천시:'경기도',양주시:'경기도',동두천시:'경기도',구리시:'경기도',가평군:'경기도',연천군:'경기도',고양시:'경기도',파주시:'경기도',서울특별시:'서울특별시'};
+function normAddr(a){
+  a = String(a || '').trim();
+  if (!a) return '';
+  a = a.replace(/[\s,]*[(\[]?\s*(지하|B)?\s*\d+\s*(~\s*\d+\s*)?층\s*[)\]]?/g, ' ').replace(/\s{2,}/g, ' ').replace(/[\s,]+$/, '').trim();
+  if (/^(서울|경기|인천|부산|대구|광주|대전|울산|세종|강원|충북|충남|전북|전남|경북|경남|제주)/.test(a)) {
+    return a.replace(/^경기 /, '경기도 ').replace(/^서울 /, '서울특별시 ').replace(/^서울시 /, '서울특별시 ');
+  }
+  const c = a.split(' ')[0];
+  return CITY_REGION[c] ? CITY_REGION[c] + ' ' + a : a;
+}
+ROWS.forEach(r => { r.address = normAddr(r.address); });
 const BYNAME = new Map(ROWS.map(r => [r.name, r]));
 const TIER_COUNTS = ROWS.reduce((acc, r) => { acc[r.tier] = (acc[r.tier] || 0) + 1; return acc; }, {});
 const EDGE_MAP = new Map();                       // 같은 구간이 두 번 있으면 먼저 적힌 값 사용
