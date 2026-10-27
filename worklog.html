@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>업무일지 V1.02 (2026-10-27)</title>
+<title>업무일지 V1.03 (2026-10-27)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
@@ -648,22 +648,23 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 
 <div class="toast" id="toast"></div>
 
-<script src="mod-base.js?v=1.02-2026-10-27"></script>
-<script src="mod-sync.js?v=1.02-2026-10-27"></script>
-<script src="mod-holiday.js?v=1.02-2026-10-27"></script>
-<script src="mod-dealer.js?v=1.02-2026-10-27"></script>
+<script src="mod-base.js?v=1.03-2026-10-27"></script>
+<script src="mod-sync.js?v=1.03-2026-10-27"></script>
+<script src="mod-holiday.js?v=1.03-2026-10-27"></script>
+<script src="mod-dealer.js?v=1.03-2026-10-27"></script>
 <script>
 const {$,CARD_CATS,WD,XL,addDays,bus,escH,keyOf,metaOf,pad,parseKey}=M.base;
 const sync=M.sync;
 const {holNames,holidaysOf}=M.holiday;
 const {BYNAME,DISTANCE_EDGES,ROWS,TIER_COUNTS,TIER_LABELS,getDistance,kmShort,kmText,normAddr,routeInfo}=M.dealer;
 /* ================= 버전 정보 (하드코딩) =================
+   V1.03 (2026-10-27): 서울 구 순서 고정: 노원·도봉·강북·성북·중랑·동대문·광진
    V1.02 (2026-10-27): 권역 안에서 시·구 단위로 묶고 거리순→이름순 정렬, 서울 구 주소에 시·도 자동 보완
    V1.01 (2026-10-27): 주소 자동 정리(시·도 보완, 층·호수 삭제), 주소 자동 찾기, 서울권 주소 추가, 버튼 눌림 효과
    V1.00 (2026-10-26): 버전 새로 시작 — 업무일지 — 대리점 조회·회전 저장, 근무 달력, 연간 집계, 동기화
    구조: 공통 코드는 독립 모듈(mod-*.js)로 분리, 이 파일은 화면만 담당 */
 const APP_NAME    = '업무일지';
-const APP_VERSION = '1.02';
+const APP_VERSION = '1.03';
 const BUILD_DATE  = '2026-10-27';
 
 /* ================= 데이터 모델 =================
@@ -1136,13 +1137,15 @@ function resolveList(val){
   return {terms,rows,exact,bad};
 }
 /* 권역 안에서 시·구 단위로 묶기: 묶음은 가까운 곳 순, 묶음 안은 거리순 → 이름순 (거리 없는 곳은 뒤, 주소 없는 곳은 맨 끝 묶음) */
+const GU_ORDER=['노원구','도봉구','강북구','성북구','중랑구','동대문구','광진구'];   // 서울 구 표시 순서 (여기 없는 구는 뒤에 거리·이름순)
 function groupDealers(rows){
   const dv=r=>r.dist||r.dist===0?r.dist:1e9;
   const by=(a,b)=>dv(a)-dv(b)||a.name.localeCompare(b.name,'ko');
   const gs=new Map();
   rows.forEach(r=>{ const n=r.address?(r.address.split(' ')[1]||'기타'):'주소 없음'; if(!gs.has(n)) gs.set(n,[]); gs.get(n).push(r); });
   const list=[...gs].map(([name,rs])=>({name,rows:rs.sort(by)}));
-  list.sort((a,b)=>(a.name==='주소 없음')-(b.name==='주소 없음')||(dv(a.rows[0])-dv(b.rows[0]))||a.name.localeCompare(b.name,'ko'));
+  const gi=n=>{ const i=GU_ORDER.indexOf(n); return i<0?99:i; };
+  list.sort((a,b)=>(a.name==='주소 없음')-(b.name==='주소 없음')||gi(a.name)-gi(b.name)||(dv(a.rows[0])-dv(b.rows[0]))||a.name.localeCompare(b.name,'ko'));
   return list;
 }
 let curList=[], curExact=false;         // 지금 조회 화면에 보이는 대리점 목록 = 저장 대상

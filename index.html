@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>업무허브 V1.02 (2026-10-27)</title>
+<title>업무허브 V1.03 (2026-10-27)</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
@@ -85,22 +85,23 @@ textarea{width:100%;min-height:160px;border-radius:12px;border:1.5px solid var(-
 <input type="file" id="file" accept=".xlsx,.csv,.txt,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,text/plain" hidden>
 <div class="toast" id="toast"></div>
 
-<script src="mod-base.js?v=1.02-2026-10-27"></script>
-<script src="mod-card.js?v=1.02-2026-10-27"></script>
-<script src="mod-sync.js?v=1.02-2026-10-27"></script>
-<script src="mod-ledger.js?v=1.02-2026-10-27"></script>
+<script src="mod-base.js?v=1.03-2026-10-27"></script>
+<script src="mod-card.js?v=1.03-2026-10-27"></script>
+<script src="mod-sync.js?v=1.03-2026-10-27"></script>
+<script src="mod-ledger.js?v=1.03-2026-10-27"></script>
 <script>
 const {$,bus,escH,fmt,keyOf,metaOf,rj,toast}=M.base;
 const {pasteTx,readCardFile}=M.card;
 const sync=M.sync;
 const {E,EK,EM,WK,allTx,catOf,importCore,importMsg,replaceE,sumV,ymKey}=M.ledger;
 /* ================= 버전 정보 (하드코딩) =================
+   V1.03 (2026-10-27): 서울 구 순서 고정: 노원·도봉·강북·성북·중랑·동대문·광진
    V1.02 (2026-10-27): 권역 안에서 시·구 단위로 묶고 거리순→이름순 정렬, 서울 구 주소에 시·도 자동 보완
    V1.01 (2026-10-27): 주소 자동 정리(시·도 보완, 층·호수 삭제), 주소 자동 찾기, 서울권 주소 추가, 버튼 눌림 효과
    V1.00 (2026-10-26): 버전 새로 시작 — 업무허브 — 카드 엑셀·붙여넣기 올리기(형식 자유·미리보기), 업무일지·가계부 이동, 이번 달 요약
    구조: 공통 코드는 독립 모듈(mod-*.js)로 분리, 이 파일은 화면만 담당 */
 const APP_NAME    = '업무허브';
-const APP_VERSION = '1.02';
+const APP_VERSION = '1.03';
 const BUILD_DATE  = '2026-10-27';
 sync.configure({version:APP_VERSION});
 
