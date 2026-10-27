@@ -1,6 +1,6 @@
 /* mod-ledger.js — 가계부 기록 · 분류 · 고정지출 · 카드 반영(importCore)
    업무허브 · 업무일지 · 가계부가 함께 쓰는 독립 모듈. 공개 API만 M.ledger로 내보냄.
-   MODULE ledger V1.08 (2026-10-27) */
+   MODULE ledger V1.09 (2026-10-27) */
 (function(M){
 const {$,CARD_CATS,bus,ls,metaOf,pad,rj,toast}=M.base;
 const {BIKE_MAX,LPG_RE,STATION_RE,classifyCard,isBigFuel,netCardTx,normM}=M.card;
@@ -158,6 +158,12 @@ function saveOriginal(rows,src,keys){        // 올린 엑셀·붙여넣기 원�
   const fk='f:'+(h>>>0).toString(36)+js.length.toString(36);
   if(!E[fk]){ E[fk]={n:src,at:new Date().toISOString(),rows:R}; keys.push(fk); }
 }
+function dropOriginals(keys){        // 올린 원본(f:) 목록만 지움 — 지출(t:)·업무일지 기록은 건드리지 않음 (지운 표시는 동기화로 다른 기기에도 전달)
+  const ks=keys.filter(k=>k.startsWith('f:')&&E[k]);
+  ks.forEach(k=>{ delete E[k]; });
+  if(ks.length) touch(ks);
+  return ks.length;
+}
 function importCore(tx,src,rows,miss){        // 엑셀·붙여넣기 → 가계부(전체 결제) + 업무일지(주유·요소수·통행료) + 원본 보관
   const n=netCardTx(tx), md=metaOf(EM), keys=[];
   saveOriginal(rows,src,keys);
@@ -205,5 +211,5 @@ if(sync){
   bus.on('sync:merged',()=>{ if(migrateWork()) sync.schedule(800); });                    // 합친 뒤 업무일지의 충전소·바이크 비용 정리
 }
 migrateWork();
-M.ledger={CATN,CATS,CAT_DEF,E,EK,EM,FIXED_G,GICON,GNAMES,WK,allTx,brandOf,catOf,groupOf,importCore,importMsg,pickGroup,replaceE,sumV,touch,ymKey,migrateWork};
+M.ledger={CATN,CATS,CAT_DEF,E,EK,EM,FIXED_G,GICON,GNAMES,WK,allTx,brandOf,catOf,dropOriginals,groupOf,importCore,importMsg,pickGroup,replaceE,sumV,touch,ymKey,migrateWork};
 })(window.M=window.M||{});

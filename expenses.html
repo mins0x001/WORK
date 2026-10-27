@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>가계부 V1.08 (2026-10-27)</title>
+<title>가계부 V1.09 (2026-10-27)</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
@@ -153,6 +153,8 @@ textarea{width:100%;min-height:150px;border-radius:12px;border:1.5px solid var(-
       <div class="ch"><h2>📁 올린 원본 · 엑셀</h2><small id="fCnt"></small></div>
       <button class="btn" type="button" id="xlsxBtn">📊 가계부 전체 엑셀 다운로드 <small>지출·월별분류·원본</small></button>
       <div id="fList"></div>
+      <button class="btn line del" type="button" id="fAllDel" hidden>🗑 원본 전체 삭제</button>
+      <div class="note">원본 파일 목록만 지웁니다. <b>가계부 지출·업무일지 내역은 그대로 평생 보관</b>됩니다. 같은 파일을 다시 올리면 원본도 다시 저장됩니다.</div>
     </div>
     <div class="card">
       <div class="ch"><h2>☁️ 동기화 · 평생 저장</h2></div>
@@ -198,15 +200,16 @@ textarea{width:100%;min-height:150px;border-radius:12px;border:1.5px solid var(-
 <input type="file" id="rsFile" accept=".json,application/json" hidden>
 <div class="toast" id="toast"></div>
 
-<script src="mod-base.js?v=1.08-2026-10-27"></script>
-<script src="mod-card.js?v=1.08-2026-10-27"></script>
-<script src="mod-sync.js?v=1.08-2026-10-27"></script>
-<script src="mod-ledger.js?v=1.08-2026-10-27"></script>
+<script src="mod-base.js?v=1.09-2026-10-27"></script>
+<script src="mod-card.js?v=1.09-2026-10-27"></script>
+<script src="mod-sync.js?v=1.09-2026-10-27"></script>
+<script src="mod-ledger.js?v=1.09-2026-10-27"></script>
 <script>
 const {$,WD,XL,bus,escH,fmt,keyOf,ls,metaOf,pad,parseKey,rj,toast}=M.base;
 const sync=M.sync;
-const {CATN,CATS,CAT_DEF,E,EK,EM,FIXED_G,GICON,GNAMES,allTx,brandOf,catOf,groupOf,pickGroup,replaceE,sumV,touch}=M.ledger;
+const {CATN,CATS,CAT_DEF,E,EK,EM,FIXED_G,GICON,GNAMES,allTx,brandOf,catOf,dropOriginals,groupOf,pickGroup,replaceE,sumV,touch}=M.ledger;
 /* ================= 버전 정보 (하드코딩) =================
+   V1.09 (2026-10-27): 가계부 설정: 올린 원본 개별·전체 삭제(지출·업무일지 내역은 평생 유지)
    V1.08 (2026-10-27): 가계부: 세부 항목(통신비·주유 등)을 누르면 아래 내역이 그 항목만 표시
    V1.07 (2026-10-27): 카드 올리기: 신한형(거래일+시각 한 칸·취소 승인번호 다름) 호환, 해외이용금액 칸 오인 수정, 취소 상계 강화
    V1.06 (2026-10-27): 집계(mod-stats)·내보내기(mod-export) 모듈 분리, 전 파일 점검
@@ -218,7 +221,7 @@ const {CATN,CATS,CAT_DEF,E,EK,EM,FIXED_G,GICON,GNAMES,allTx,brandOf,catOf,groupO
    V1.00 (2026-10-26): 버전 새로 시작 — 가계부 — 월·연 분석, 생활·업무·기타 분류, 고정지출, 원본 보관·엑셀 내보내기, 동기화
    구조: 공통 코드는 독립 모듈(mod-*.js)로 분리, 이 파일은 화면만 담당 */
 const APP_NAME    = '가계부';
-const APP_VERSION = '1.08';
+const APP_VERSION = '1.09';
 const BUILD_DATE  = '2026-10-27';
 sync.configure({version:APP_VERSION});
 
@@ -478,11 +481,16 @@ function buildXlsx(){
 $('xlsxBtn').onclick=()=>{ try{ download(`${APP_NAME}_전체_V${APP_VERSION}_${stamp()}.xlsx`,buildXlsx(),'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'); }catch(e){ toast('⚠ 엑셀 생성 실패: '+e.message); } };
 function renderFiles(){
   const F=origs();
-  $('fCnt').textContent=`원본 ${F.length}개`;
+  $('fCnt').textContent=`원본 ${F.length}개`; $('fAllDel').hidden=!F.length;
   $('kKey').value=kakaoKey();
   $('kState').textContent=kakaoKey()?'켜짐':'꺼짐';
-  $('fList').innerHTML=F.length?F.map(f=>`<div class="fr"><span><b>${escH(f.n)}</b><br>${f.at.slice(0,10)} · ${f.rows.length}줄</span><button type="button" data-f="${escH(f.key)}">⬇ 원본 엑셀</button></div>`).join(''):'<div class="sub">아직 올린 파일이 없습니다</div>';
+  $('fList').innerHTML=F.length?F.map(f=>`<div class="fr"><span><b>${escH(f.n)}</b><br>${f.at.slice(0,10)} · ${f.rows.length}줄</span><button type="button" data-f="${escH(f.key)}">⬇ 원본 엑셀</button><button type="button" class="del" data-fd="${escH(f.key)}" aria-label="이 원본 삭제">🗑</button></div>`).join(''):'<div class="sub">아직 올린 파일이 없습니다</div>';
 }
+$('fList').addEventListener('click',e=>{ const d=e.target.closest('[data-fd]'); if(!d) return; const f=E[d.dataset.fd]; if(!f) return;
+  if(!confirm(`원본 '${f.n}' 을(를) 목록에서 지울까요?\n(가계부 지출·업무일지 내역은 그대로 유지됩니다)`)) return;
+  dropOriginals([d.dataset.fd]); renderFiles(); toast('원본 1개를 지웠습니다 · 지출 내역은 유지'); });
+$('fAllDel').onclick=()=>{ const n=origs().length; if(!n||!confirm(`올린 원본 ${n}개를 모두 지울까요?\n(가계부 지출·업무일지 내역은 그대로 유지됩니다)`)) return;
+  dropOriginals(origs().map(f=>f.key)); renderFiles(); toast(`원본 ${n}개를 모두 지웠습니다 · 지출 내역은 유지`); };
 $('fList').addEventListener('click',e=>{ const b=e.target.closest('[data-f]'); if(!b) return; const f=E[b.dataset.f]; if(!f) return;
   download(`원본_${f.n.replace(/\.[^.]+$/,'').replace(/[\\/:*?"<>|]/g,'_')}_${f.at.slice(0,10).replace(/-/g,'')}.xlsx`,XL.build([{name:'원본',rows:f.rows}]),'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'); });
 function renderSync(state){

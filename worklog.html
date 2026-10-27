@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>업무일지 V1.08 (2026-10-27)</title>
+<title>업무일지 V1.09 (2026-10-27)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
@@ -648,12 +648,12 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 
 <div class="toast" id="toast"></div>
 
-<script src="mod-base.js?v=1.08-2026-10-27"></script>
-<script src="mod-sync.js?v=1.08-2026-10-27"></script>
-<script src="mod-holiday.js?v=1.08-2026-10-27"></script>
-<script src="mod-dealer.js?v=1.08-2026-10-27"></script>
-<script src="mod-stats.js?v=1.08-2026-10-27"></script>
-<script src="mod-export.js?v=1.08-2026-10-27"></script>
+<script src="mod-base.js?v=1.09-2026-10-27"></script>
+<script src="mod-sync.js?v=1.09-2026-10-27"></script>
+<script src="mod-holiday.js?v=1.09-2026-10-27"></script>
+<script src="mod-dealer.js?v=1.09-2026-10-27"></script>
+<script src="mod-stats.js?v=1.09-2026-10-27"></script>
+<script src="mod-export.js?v=1.09-2026-10-27"></script>
 <script>
 const {$,CARD_CATS,WD,addDays,bus,escH,keyOf,metaOf,pad,parseKey}=M.base;
 const sync=M.sync;
@@ -662,6 +662,7 @@ const {BYNAME,DISTANCE_EDGES,ROWS,TIER_COUNTS,TIER_LABELS,getDistance,kmShort,km
 const {MAX_STOPS,RENAMED,ROUNDS,SHIFT,dayRouteKmIn,normalize,odoFor,periodOf,rangeOf,roundTextIn,roundsIn,statsFor}=M.stats;
 const {buildWorkbookFor,csvRowsFor}=M.export;
 /* ================= 버전 정보 (하드코딩) =================
+   V1.09 (2026-10-27): 가계부 설정: 올린 원본 개별·전체 삭제(지출·업무일지 내역은 평생 유지)
    V1.08 (2026-10-27): 가계부: 세부 항목(통신비·주유 등)을 누르면 아래 내역이 그 항목만 표시
    V1.07 (2026-10-27): 카드 올리기: 신한형(거래일+시각 한 칸·취소 승인번호 다름) 호환, 해외이용금액 칸 오인 수정, 취소 상계 강화
    V1.06 (2026-10-27): 집계(mod-stats)·내보내기(mod-export) 모듈 분리, 전 파일 점검
@@ -673,7 +674,7 @@ const {buildWorkbookFor,csvRowsFor}=M.export;
    V1.00 (2026-10-26): 버전 새로 시작 — 업무일지 — 대리점 조회·회전 저장, 근무 달력, 연간 집계, 동기화
    구조: 공통 코드는 독립 모듈(mod-*.js)로 분리, 이 파일은 화면만 담당 */
 const APP_NAME    = '업무일지';
-const APP_VERSION = '1.08';
+const APP_VERSION = '1.09';
 const BUILD_DATE  = '2026-10-27';
 
 /* ================= 데이터 모델 =================
