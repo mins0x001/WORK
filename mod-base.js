@@ -1,6 +1,6 @@
 /* mod-base.js — 공통 도구 · 저장소 · 알림 버스 · 엑셀(.xlsx) 쓰기
    업무허브 · 업무일지 · 가계부가 함께 쓰는 독립 모듈. 공개 API만 M.base로 내보냄.
-   MODULE base V1.04 (2026-10-27) */
+   MODULE base V1.05 (2026-10-27) */
 (function(M){
 /* ---- 공통 ---- */
 const CARD_CATS={fuel:{label:'주유',ic:'⛽'},urea:{label:'요소수',ic:'💧'},toll:{label:'통행료',ic:'🛣️'}};   // 카드 결제 중 업무일지 비용으로 가는 종류
