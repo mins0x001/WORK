@@ -557,7 +557,9 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
         <p>백업 파일(JSON)을 <b>카카오톡 나에게 보내기</b>나 <b>Google Drive</b>로 보내 두면 휴대폰을 바꿔도 복원할 수 있습니다. 예전 근무일지 백업 파일도 그대로 복원됩니다. 복원은 <b>합치기</b>(기존 유지 + 백업 추가)와 <b>전부 바꾸기</b>가 있고, 복원 직전 상태로 되돌릴 수 있습니다. 기록 5일 이상에서 14일 넘게 백업하지 않으면 일지 화면에 알림이 뜹니다.</p></details>
       <details class="help-item"><summary>📊 엑셀 · 데이터</summary>
         <p><b>업무일지_기록_버전_날짜.xlsx</b> 가 만들어집니다. 시트 6개: ① 월별요약(근무일·회전수·휴무·운행 km·비용·저장 회전·방문 대리점·경로 km, 맨 아래 합계는 엑셀 수식), ② 일별기록(근무·계기판·비용·회전별 방문 대리점), ③ 회전기록(날짜·회전·순서별 대리점·코드·전화·주소), ④ 대리점목록, ⑤ 거리표, ⑥ 카드내역(반영한 카드 결제). 인터넷 없이도 만들어집니다.</p>
-        <p>대리점·거리 데이터는 이 파일(index.html) 안에 들어 있어 인터넷 없이도 조회됩니다. 내용을 고치려면 파일의 ROWS(대리점)·DISTANCE_EDGES(거리) 부분을 수정합니다.</p></details>
+        <p>대리점·거리 데이터는 이 파일(index.html) 안에 들어 있어 인터넷 없이도 조회됩니다. 내용을 고치려면 파일의 ROWS(대리점)·DISTANCE_EDGES(거리) 부분을 수정합니다.</p>
+        <p><button type="button" id="addrFindBtn" class="btn">📍 주소 없는 대리점 주소 자동 찾기</button> <span id="addrFindMsg" class="muted"></span></p>
+        <p>카카오 장소검색에서 <b>전화번호가 같은 곳</b>만 저장합니다(가계부에 넣은 카카오 JavaScript 키 사용). 저장한 주소는 동기화됩니다.</p></details>
       <details class="help-item"><summary>✨ 자동 업데이트 · 저장</summary>
         <p>온라인 주소에서 열면 새 버전을 자동으로 확인해(시작 시, 화면 복귀 시, 30분마다) 입력 중이 아닐 때 새 버전으로 다시 엽니다. 기록은 이 브라우저에 기간 제한 없이 저장되며, 입력 즉시 저장되므로 다시 열어도 사라지지 않습니다. 예전 근무일지에서 쓰던 기록은 그대로 이어서 씁니다. 브라우저 데이터 삭제·기기 변경에 대비해 동기화를 켜거나 정기적으로 백업하세요.</p></details>
     </div>
@@ -653,7 +655,7 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 const {$,CARD_CATS,WD,XL,addDays,bus,escH,keyOf,metaOf,pad,parseKey}=M.base;
 const sync=M.sync;
 const {holNames,holidaysOf}=M.holiday;
-const {BYNAME,DISTANCE_EDGES,ROWS,TIER_COUNTS,TIER_LABELS,getDistance,kmShort,kmText,routeInfo}=M.dealer;
+const {BYNAME,DISTANCE_EDGES,ROWS,TIER_COUNTS,TIER_LABELS,getDistance,kmShort,kmText,normAddr,routeInfo}=M.dealer;
 /* ================= 버전 정보 (하드코딩) =================
    V1.00 (2026-10-26): 버전 새로 시작 — 업무일지 — 대리점 조회·회전 저장, 근무 달력, 연간 집계, 동기화
    구조: 공통 코드는 독립 모듈(mod-*.js)로 분리, 이 파일은 화면만 담당 */
@@ -1658,6 +1660,65 @@ window.addEventListener('online',()=>sync.schedule(500));
 setInterval(()=>{ if(!document.hidden&&!busy()) sync.schedule(100); },90000);
 syncRender();
 sync.schedule(400);
+
+/* ---- 대리점 주소 자동 찾기 (카카오 장소검색, 전화번호가 같은 곳만 저장) ---- */
+const ADDR_K='worklog.addr.v1', ADDR_M='worklog.addr.meta';
+let ADDR={}; try{ ADDR=JSON.parse(ls.get(ADDR_K)||'{}')||{}; }catch(e){ ADDR={}; }
+function applyAddr(){ ROWS.forEach(r=>{ if(!r.address&&ADDR[r.name]&&ADDR[r.name].a) r.address=normAddr(ADDR[r.name].a); }); }
+function addrTouch(names){
+  const m=metaOf(ADDR_M), t=Date.now();
+  names.forEach(n=>{ m.mt[n]=t; delete m.del[n]; });
+  m.dirty=true; ls.set(ADDR_M,JSON.stringify(m)); ls.set(ADDR_K,JSON.stringify(ADDR)); sync.schedule(1500);
+}
+sync.register({file:'dealers.json',app:'worklog',mk:ADDR_M,get:()=>ADDR,set:d=>{
+  ADDR=d||{}; ls.set(ADDR_K,JSON.stringify(ADDR)); applyAddr(); renderDealers(); return '대리점 주소 반영';
+}});
+applyAddr();
+let addrBusy=false, kakaoSdk=null;
+function kakaoKeyW(){ try{ const e=JSON.parse(ls.get('expenses.data.v1')||'{}'); return (e['c:kakao']&&e['c:kakao'].k)||''; }catch(e){ return ''; } }
+function loadKakaoW(key){
+  if(kakaoSdk) return kakaoSdk;
+  kakaoSdk=new Promise((res,rej)=>{
+    if(window.kakao&&kakao.maps&&kakao.maps.services) return res();
+    const sc=document.createElement('script');
+    sc.src='https://dapi.kakao.com/v2/maps/sdk.js?appkey='+encodeURIComponent(key)+'&libraries=services&autoload=false';
+    sc.onload=()=>{ try{ kakao.maps.load(()=>res()); }catch(e){ rej(new Error('카카오 키·도메인 등록을 확인하세요')); } };
+    sc.onerror=()=>rej(new Error('카카오 연결 실패'));
+    document.head.appendChild(sc);
+  });
+  kakaoSdk.catch(()=>{ kakaoSdk=null; });
+  return kakaoSdk;
+}
+const kSearchW=q=>new Promise(res=>{ try{ new kakao.maps.services.Places().keywordSearch(q,(d,st)=>res(st===kakao.maps.services.Status.OK?d:[]),{size:15}); }catch(e){ res([]); } });
+async function findMissingAddr(silent){
+  const key=kakaoKeyW(), msg=$('addrFindMsg');
+  const say=t=>{ if(msg) msg.textContent=t; };
+  if(addrBusy) return;
+  const todo=ROWS.filter(r=>!r.address);
+  if(!todo.length){ say('주소 없는 대리점이 없습니다'); return; }
+  if(!key){ if(!silent) say('가계부 설정에 카카오 JavaScript 키를 먼저 넣어주세요'); return; }
+  addrBusy=true; say('찾는 중…');
+  try{
+    await loadKakaoW(key);
+    const got=[]; let i=0;
+    for(const r of todo){
+      say(`찾는 중… ${++i}/${todo.length}`);
+      const want=r.phone.replace(/\D/g,'');
+      for(const q of [r.phone, r.name+' '+r.phone, r.name]){
+        const d=await kSearchW(q);
+        const hit=d.find(x=>x.phone&&x.phone.replace(/\D/g,'')===want);
+        if(hit){ ADDR[r.name]={a:normAddr(hit.road_address_name||hit.address_name)}; got.push(r.name); break; }
+      }
+    }
+    if(got.length){ addrTouch(got); applyAddr(); renderDealers(); }
+    say(`${got.length}곳 저장 · ${todo.length-got.length}곳은 전화번호가 일치하는 곳이 없어 건너뜀`);
+    if(silent&&got.length) toast(`📍 대리점 주소 ${got.length}곳 자동 저장`);
+    ls.set('worklog.addr.tried',String(Date.now()));
+  }catch(e){ say('⚠ '+(e.message||'실패')); }
+  addrBusy=false;
+}
+$('addrFindBtn').onclick=()=>findMissingAddr(false);
+setTimeout(()=>{ if(Date.now()-(+ls.get('worklog.addr.tried')||0)>864e5) findMissingAddr(true); },3000);
 </script>
 </body>
 </html>

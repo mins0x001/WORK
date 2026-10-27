@@ -357,5 +357,5 @@ function kmShort(i){                             // 목록 한 줄용 짧은 표
   if (i.unk >= i.legs) return '<small>거리 미확인</small>';
   return i.unk ? `${i.km}km<small> +확인 ${i.unk}</small>` : `${i.km}km`;
 }
-M.dealer={BYNAME,DISTANCE_EDGES,ROWS,TIER_COUNTS,TIER_LABELS,getDistance,kmShort,kmText,routeInfo};
+M.dealer={BYNAME,DISTANCE_EDGES,ROWS,TIER_COUNTS,TIER_LABELS,getDistance,kmShort,kmText,normAddr,routeInfo};
 })(window.M=window.M||{});
