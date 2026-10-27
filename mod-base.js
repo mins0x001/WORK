@@ -98,5 +98,16 @@ const XL = (() => {
   }
   return { build };
 })();
+/* 버튼 눌림 효과: 모든 앱 공통 (눌렀을 때 살짝 작아지고 어두워짐) */
+(function pressFx(){
+  try{
+    const st=document.createElement('style');
+    st.textContent='button,[role=button],summary,label[for],input[type=button],input[type=submit],.btn,.tab,.chip,.tile,.day,.cell{-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:transform .08s ease,filter .08s ease,opacity .08s ease}'
+      +'button:not(:disabled):active,[role=button]:active,summary:active,input[type=button]:active,input[type=submit]:active,.btn:active,.tab:active,.chip:active,.tile:active,.day:active,.cell:active{transform:scale(.93);filter:brightness(.82)}'
+      +'button:disabled{opacity:.5}';
+    document.head.appendChild(st);
+    document.addEventListener('touchstart',function(){},{passive:true});   // iOS에서 :active 동작시키기
+  }catch(e){}
+})();
 M.base={$,CARD_CATS,WD,XL,addDays,bus,escH,fmt,keyOf,ls,metaOf,pad,parseKey,rj,toast};
 })(window.M=window.M||{});
