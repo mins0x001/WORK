@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0A1120">
-<meta name="release-date" content="2026-10-26">
+<meta name="release-date" content="2026-10-27">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="가계부">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>가계부 V1.00 (2026-10-26)</title>
+<title>가계부 V1.01 (2026-10-27)</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
@@ -197,20 +197,21 @@ textarea{width:100%;min-height:150px;border-radius:12px;border:1.5px solid var(-
 <input type="file" id="rsFile" accept=".json,application/json" hidden>
 <div class="toast" id="toast"></div>
 
-<script src="mod-base.js?v=1.00-2026-10-26"></script>
-<script src="mod-card.js?v=1.00-2026-10-26"></script>
-<script src="mod-sync.js?v=1.00-2026-10-26"></script>
-<script src="mod-ledger.js?v=1.00-2026-10-26"></script>
+<script src="mod-base.js?v=1.01-2026-10-27"></script>
+<script src="mod-card.js?v=1.01-2026-10-27"></script>
+<script src="mod-sync.js?v=1.01-2026-10-27"></script>
+<script src="mod-ledger.js?v=1.01-2026-10-27"></script>
 <script>
 const {$,WD,XL,bus,escH,fmt,keyOf,ls,metaOf,pad,parseKey,rj,toast}=M.base;
 const sync=M.sync;
 const {CATN,CATS,CAT_DEF,E,EK,EM,FIXED_G,GICON,GNAMES,allTx,brandOf,catOf,groupOf,replaceE,sumV,touch}=M.ledger;
 /* ================= 버전 정보 (하드코딩) =================
+   V1.01 (2026-10-27): 주소 자동 정리(시·도 보완, 층·호수 삭제), 주소 자동 찾기, 서울권 주소 추가, 버튼 눌림 효과
    V1.00 (2026-10-26): 버전 새로 시작 — 가계부 — 월·연 분석, 생활·업무·기타 분류, 고정지출, 원본 보관·엑셀 내보내기, 동기화
    구조: 공통 코드는 독립 모듈(mod-*.js)로 분리, 이 파일은 화면만 담당 */
 const APP_NAME    = '가계부';
-const APP_VERSION = '1.00';
-const BUILD_DATE  = '2026-10-26';
+const APP_VERSION = '1.01';
+const BUILD_DATE  = '2026-10-27';
 sync.configure({version:APP_VERSION});
 
 function uiSync(state){ renderSync(state); }      // mod-sync.js가 알리는 동기화 상태를 그림
