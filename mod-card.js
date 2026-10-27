@@ -1,6 +1,6 @@
 /* mod-card.js — 카드 내역 읽기(엑셀·CSV·붙여넣기) · 중복 상계 · 업무 비용 분류
    업무허브 · 업무일지 · 가계부가 함께 쓰는 독립 모듈. 공개 API만 M.card로 내보냄.
-   MODULE card V1.06 (2026-10-27) */
+   MODULE card V1.07 (2026-10-27) */
 (function(M){
 const {$,CARD_CATS,ls,pad}=M.base;
 /* ================= 💳 카드내역 가져오기 (삼성카드 이용내역 엑셀 · CSV · 붙여넣기) =================
@@ -117,7 +117,7 @@ function cardHeaderMap(row){     // 머리글 이름이 카드사마다 달라�
     else if(m.time===undefined&&/(시각|시간)$/.test(s)&&!/일자|일시/.test(s)) m.time=i;
     else if(m.date===undefined&&(/(승인|이용|거래|사용|매출|결제)(일자|일시|일|날짜)$/.test(s)||/^(일자|날짜|일시)$/.test(s))) m.date=i;
     else if(m.m===undefined&&/가맹점|이용처|사용처|상호|이용하신곳|거래처|사용내역|이용내역/.test(s)) m.m=i;
-    else if(/금액|이용액|결제액|승인액/.test(s)&&!/합계|할인|적립|수수료|잔액|포인트|외화|US|\$|달러|현지|이자|예정|할부잔|원금잔/.test(s)) vs.push([i,/승인금액|이용금액|결제금액|거래금액|매출금액|승인액|이용액/.test(s)?3:/청구/.test(s)?1:2]);
+    else if(/금액|이용액|결제액|승인액/.test(s)&&!/합계|할인|적립|수수료|잔액|포인트|외화|해외|통화|US|\$|달러|현지|이자|예정|할부잔|원금잔/.test(s)) vs.push([i,/승인금액|이용금액|결제금액|거래금액|매출금액|승인액|이용액/.test(s)?3:/청구/.test(s)?1:2]);
     else if(m.cancel===undefined&&/취소|상태/.test(s)) m.cancel=i;
   });
   if(vs.length){ vs.sort((a,b)=>b[1]-a[1]||a[0]-b[0]); m.v=vs[0][0]; }
@@ -164,6 +164,9 @@ function rowsToCardTx(rows){
       tx.push(t); }
   }
   tx.filter(t=>t.v<0&&!t.ap).forEach(c=>{ const o=tx.find(t=>t.v===-c.v&&!t.ap&&!t.pair&&normM(t.m)===normM(c.m)&&t.k<=c.k); if(o){ o.pair=1; c.k=o.k; c.ts=o.ts; c.m=o.m; } });   // 승인번호 없는 취소 → 같은 가게·같은 금액 승인과 상계
+  tx.filter(t=>t.v<0&&t.ap).forEach(c=>{ const o=tx.find(t=>t.v>0&&t.ap===c.ap&&t.k!==c.k); if(o&&!tx.some(t=>t.v>0&&t.ap===c.ap&&t.k===c.k)){ c.k=o.k; c.ts=o.ts; c.tm=o.tm; } });   // 같은 승인번호인데 취소가 다음 날짜로 찍힌 경우
+  tx.filter(t=>t.v<0&&t.ap).forEach(c=>{ if(tx.some(t=>t.v>0&&t.ap===c.ap)) return;          // 승인번호가 다른 취소 줄(신한 등) → 같은 가게·같은 금액 승인과 상계
+    const o=tx.find(t=>t.v>0&&t.v===-c.v&&!t.pair&&t.ap!==c.ap&&normM(t.m)===normM(c.m)&&t.k<=c.k); if(o){ o.pair=1; c.ap=o.ap; c.k=o.k; c.ts=o.ts; c.m=o.m; c.tm=o.tm; } });
   if(tx.length>2){ const tot=tx.reduce((x,t)=>x+t.v,0); for(let i=tx.length-1;i>=0;i--) if(tx[i].v>0&&tx[i].v*2===tot){ tx.splice(i,1); break; } }   // 나머지 합과 같은 금액 = 합계 줄
   return tx;
 }
@@ -230,7 +233,7 @@ function netCardTx(tx){
   const items=[], orphan=[]; let canceled=0;
   for(const x of g.values()){
     x.v=Math.round(x.v);
-    if(x.v>0) items.push(x); else if(x.pos&&x.neg) canceled++; else if(x.neg) orphan.push({id:x.id,k:x.k});
+    if(x.v>0) items.push(x); else if(x.pos&&x.neg) canceled++; else if(x.neg) orphan.push({id:x.id,k:x.k,m:x.m,v:-x.v,tm:x.tm});
   }
   items.sort((a,b)=>a.k===b.k?(a.ts<b.ts?1:a.ts>b.ts?-1:0):(a.k<b.k?1:-1));     // 최근 날짜·시각이 위
   return {items,canceled,orphan,raw:tx.length};

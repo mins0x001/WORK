@@ -1,6 +1,6 @@
 /* mod-ledger.js — 가계부 기록 · 분류 · 고정지출 · 카드 반영(importCore)
    업무허브 · 업무일지 · 가계부가 함께 쓰는 독립 모듈. 공개 API만 M.ledger로 내보냄.
-   MODULE ledger V1.06 (2026-10-27) */
+   MODULE ledger V1.07 (2026-10-27) */
 (function(M){
 const {$,CARD_CATS,bus,ls,metaOf,pad,rj,toast}=M.base;
 const {BIKE_MAX,LPG_RE,STATION_RE,classifyCard,isBigFuel,netCardTx,normM}=M.card;
@@ -133,6 +133,22 @@ function applyWork(items){            // 업무일지(worklog.data.v2) 날짜별
   if(days){ wm.dirty=true; ls.set(WK,JSON.stringify(W)); ls.set(WM,JSON.stringify(wm)); }
   return days;
 }
+function unapplyWork(gone){           // 취소된 결제를 업무일지의 카드 결제 목록(cd)에서도 빼고 주유·요소수·통행료 합계를 다시 계산
+  if(!gone.length) return 0;
+  const W=rj(WK,{}), wm=metaOf(WM), now=Date.now(); let days=0;
+  gone.forEach(g=>{
+    const rec=W[g.k]; if(!rec||!rec.cd) return;
+    const i=rec.cd.findIndex(e=>e.id===g.id||(normM(e.m)===normM(g.m)&&e.v===g.v)); if(i<0) return;
+    const cd=rec.cd.slice(); cd.splice(i,1);
+    const o=Object.assign({},rec); delete o.cd; Object.keys(CARD_CATS).forEach(c=>{ delete o[c]; });
+    Object.keys(CARD_CATS).forEach(c=>{ const sm=cd.filter(e=>e.c===c).reduce((x,e)=>x+e.v,0); if(sm) o[c]=sm; });
+    if(cd.length) o.cd=cd;
+    if(Object.keys(o).length) W[g.k]=o; else delete W[g.k];
+    wm.mt[g.k]=now; delete wm.del[g.k]; days++;
+  });
+  if(days){ wm.dirty=true; ls.set(WK,JSON.stringify(W)); ls.set(WM,JSON.stringify(wm)); }
+  return days;
+}
 function saveOriginal(rows,src,keys){        // 올린 엑셀·붙여넣기 원본을 그대로 평생 보관 (같은 내용은 한 번만)
   if(!rows||!rows.length) return;
   const R=rows.slice(0,5000).map(r=>Array.from(r||[],c=>c==null?'':c)), js=JSON.stringify(R);
@@ -159,15 +175,24 @@ function importCore(tx,src,rows,miss){        // 엑셀·붙여넣기 → 가계
     if(same){ dup++; if(it.tm&&!E[same].t){ E[same].t=it.tm; keys.push(same); } return; }      // 시각 없던 기록에 시각 채움
     E[key]={d:it.k,m:it.m,v:it.v}; if(it.tm) E[key].t=it.tm; keys.push(key); add++;
   });
-  n.orphan.forEach(o=>{ const key='t:'+o.id; if(E[key]){ delete E[key]; keys.push(key); } });
+  /* 원래 승인이 이번 파일에 없는 취소: 같은 승인번호 → 같은 가게·같은 금액의 이전 결제(가계부에 이미 있는 것) 순으로 찾아 상계 */
+  const gone=[]; let lone=0;
+  n.orphan.forEach(o=>{
+    let key='t:'+o.id;
+    if(!E[key]){ key=''; let best='';
+      Object.keys(E).forEach(k=>{ const r=E[k]; if(k.startsWith('t:')&&r&&r.d&&r.d<=o.k&&r.v===o.v&&normM(r.m)===normM(o.m)&&(!best||r.d>E[best].d)) best=k; });
+      key=best; }
+    if(key&&E[key]){ gone.push({id:key.slice(2),k:E[key].d,m:E[key].m,v:E[key].v}); delete E[key]; keys.push(key); } else lone++;
+  });
+  const unDays=unapplyWork(gone);
   if(keys.length) touch(keys);
-  const days=applyWork(n.items);
+  const days=applyWork(n.items)+unDays;
   const ks=n.items.map(i=>i.k).sort();
-  const res={src,read:n.items.length,add,dup,skip,cancel:n.canceled,miss:miss||0,days,from:ks[0]||'',to:ks[ks.length-1]||'',at:Date.now()};
+  const res={src,read:n.items.length,add,dup,skip,cancel:n.canceled+gone.length,lone,miss:miss||0,days,from:ks[0]||'',to:ks[ks.length-1]||'',at:Date.now()};
   ls.set('expenses.lastImport',JSON.stringify(res));
   return res;
 }
-const importMsg=r=>`✅ 읽음 ${r.read}건 → 새 결제 ${r.add}건 · 업무일지 ${r.days}일${r.dup?` · 이미 있음 ${r.dup}건`:''}${r.skip?` · 지운 결제 ${r.skip}건`:''}${r.cancel?` · 취소 ${r.cancel}건 상계`:''}${r.miss?` · ⚠ 못 읽은 줄 ${r.miss}개`:''}`;
+const importMsg=r=>`✅ 읽음 ${r.read}건 → 새 결제 ${r.add}건 · 업무일지 ${r.days}일${r.dup?` · 이미 있음 ${r.dup}건`:''}${r.skip?` · 지운 결제 ${r.skip}건`:''}${r.cancel?` · 취소 ${r.cancel}건 상계`:''}${r.lone?` · 원래 결제가 없는 취소 ${r.lone}건은 제외`:''}${r.miss?` · ⚠ 못 읽은 줄 ${r.miss}개`:''}`;
 /* ---- 다른 모듈과의 연결 (동기화 모듈이 있으면 기록 종류를 등록) ---- */
 function reloadE(){ const n=rj(EK,null); if(n){ replaceE(n); bus.emit('data:changed'); } }      // 다른 탭·뒤로가기로 돌아오면 저장된 기록을 다시 읽어 옛 기록으로 덮어쓰지 않게
 window.addEventListener('storage',e=>{ if(e.key===EK||e.key===WK) reloadE(); });
