@@ -1,6 +1,6 @@
 /* mod-dealer.js — 대리점 · 거리 데이터와 경로 계산
    업무허브 · 업무일지 · 가계부가 함께 쓰는 독립 모듈. 공개 API만 M.dealer로 내보냄.
-   MODULE dealer V1.09 (2026-10-27) */
+   MODULE dealer V1.10 (2026-10-28) */
 (function(M){
 /* ================= 대리점 · 거리 데이터 =================
    여기 데이터만 수정하면 됩니다 (대리점명 / 코드 / 전화번호 / 주소)
@@ -49,7 +49,6 @@ const ROWS = [
   {"name": "동일", "codes": ["4515"], "phone": "02-2212-0101", "tier": 2, "dist": null, "address": "서울 동대문구 황물로15가길 7"},
   {"name": "명성", "codes": ["1459"], "phone": "02-2245-5557", "tier": 2, "dist": null, "address": "동대문구 한천로 31 부품상가 다동"},
   {"name": "문화", "codes": ["1613"], "phone": "02-434-3666", "tier": 2, "dist": null, "address": "중랑구 송림길 4"},
-  {"name": "민영", "codes": ["3027"], "phone": "02-2249-1245", "tier": 2, "dist": null, "address": ""},
   {"name": "밧데리", "codes": ["3639"], "phone": "02-3409-2037", "tier": 2, "dist": null, "address": ""},
   {"name": "보성", "codes": ["1230"], "phone": "02-2244-2378", "tier": 2, "dist": null, "address": "서울 동대문구 한천로 31 다동"},
   {"name": "부흥", "codes": ["1722"], "phone": "02-2214-4000", "tier": 2, "dist": null, "address": "동대문구 한천로 164 1층"},
@@ -76,16 +75,15 @@ const ROWS = [
   {"name": "제삼", "codes": ["4383", "A466"], "phone": "02-2248-4956", "tier": 2, "dist": null, "address": "서울 동대문구 한천로 17"},
   {"name": "제일", "codes": ["A214"], "phone": "02-999-8585", "tier": 2, "dist": null, "address": "도봉구 도봉로 644-45"},
   {"name": "제일(장안)", "codes": ["0021"], "phone": "02-2242-3181", "tier": 2, "dist": null, "address": "서울 동대문구 황물로15나길 20"},
-  {"name": "준흥", "codes": ["4236"], "phone": "02-2299-1297", "tier": 2, "dist": null, "address": ""},
+  {"name": "준흥", "codes": ["4236"], "phone": "02-2299-1297", "tier": 2, "dist": null, "address": "경기도 남양주시 석실로 716-3"},
   {"name": "장충남", "codes": ["3550", "A954"], "phone": "02-2249-0577", "tier": 2, "dist": null, "address": "서울 동대문구 전농로4길 62 라동"},
   {"name": "태양", "codes": ["0113"], "phone": "02-923-1549", "tier": 2, "dist": null, "address": "서울 동대문구 청계천로 491"},
-  {"name": "태호", "codes": ["2788", "A128"], "phone": "02-2243-2507", "tier": 2, "dist": null, "address": ""},
   {"name": "터보", "codes": ["4008", "B222"], "phone": "02-2246-5522", "tier": 2, "dist": null, "address": "동대문구 한천로 17 자동차부품상가"},
   {"name": "털보", "codes": ["3472"], "phone": "02-2213-5663", "tier": 2, "dist": null, "address": "서울 동대문구 황물로 173"},
   {"name": "한일", "codes": ["0124"], "phone": "02-2242-1818", "tier": 2, "dist": null, "address": "동대문구 황물로15길 25"},
   {"name": "한진", "codes": ["2275"], "phone": "02-2249-0377", "tier": 2, "dist": null, "address": "동대문구 한천로 94"},
   {"name": "형제", "codes": ["A664"], "phone": "02-493-4429", "tier": 2, "dist": null, "address": "서울 중랑구 중랑천로 136"},
-  {"name": "효동", "codes": ["3874"], "phone": "02-2248-8466", "tier": 2, "dist": null, "address": ""},
+  {"name": "효동", "codes": ["3874"], "phone": "02-2248-8466", "tier": 2, "dist": null, "address": "서울특별시 동대문구 전농로4길 80"},
 ];
 const TIER_LABELS = {"1": "🟢 1권역 · 경기도", "2": "🟠 2권역 · 서울"};
 
@@ -96,11 +94,8 @@ const DISTANCE_EDGES = [
   {"from": "사업소", "to": "준흥", "km": 51, "note": ""},
   {"from": "사업소", "to": "태양", "km": 48, "note": ""},
   {"from": "태양", "to": "장안", "km": 4, "note": ""},
-  {"from": "사업소", "to": "민영", "km": 45, "note": ""},
-  {"from": "민영", "to": "장안", "km": 3, "note": ""},
   {"from": "사업소", "to": "대진", "km": 46, "note": ""},
   {"from": "대진", "to": "장안", "km": 8, "note": ""},
-  {"from": "대진", "to": "민영", "km": 5, "note": ""},
   {"from": "대진", "to": "밧데리", "km": 5, "note": ""},
   {"from": "사업소", "to": "양주K", "km": 17, "note": ""},
   {"from": "양주K", "to": "삼주", "km": 13, "note": ""},
