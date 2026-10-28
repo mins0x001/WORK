@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>가계부 V1.11 (2026-10-28)</title>
+<title>가계부 V1.12 (2026-10-28)</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
@@ -200,15 +200,16 @@ textarea{width:100%;min-height:150px;border-radius:12px;border:1.5px solid var(-
 <input type="file" id="rsFile" accept=".json,application/json" hidden>
 <div class="toast" id="toast"></div>
 
-<script src="mod-base.js?v=1.11-2026-10-28"></script>
-<script src="mod-card.js?v=1.11-2026-10-28"></script>
-<script src="mod-sync.js?v=1.11-2026-10-28"></script>
-<script src="mod-ledger.js?v=1.11-2026-10-28"></script>
+<script src="mod-base.js?v=1.12-2026-10-28"></script>
+<script src="mod-card.js?v=1.12-2026-10-28"></script>
+<script src="mod-sync.js?v=1.12-2026-10-28"></script>
+<script src="mod-ledger.js?v=1.12-2026-10-28"></script>
 <script>
 const {$,WD,XL,bus,escH,fmt,keyOf,ls,metaOf,pad,parseKey,rj,toast}=M.base;
 const sync=M.sync;
-const {CATN,CATS,CAT_DEF,E,EK,EM,FIXED_G,GICON,GNAMES,MERGED,allTx,brandOf,catOf,dropOriginals,groupOf,pickGroup,replaceE,sumV,touch}=M.ledger;
+const {CATN,CATS,CAT_DEF,E,EK,EM,FIXED_G,FIXED_NAME,GICON,GNAMES,MERGED,allTx,brandOf,catOf,dropOriginals,groupOf,pickGroup,replaceE,sumV,touch}=M.ledger;
 /* ================= 버전 정보 (하드코딩) =================
+   V1.12 (2026-10-28): 가계부: 주거·공과금 + 통신비를 '고정비(주거·공과금·통신비)' 하나로 통합(예전 기록 자동 호환)
    V1.11 (2026-10-28): 가계부: 편의점·카페·간식·마트·생활을 '편의점·마트·카페' 하나로 통합(예전 기록 자동 호환)
    V1.10 (2026-10-28): 효동·준흥 주소 추가, 태호·민영 삭제
    V1.09 (2026-10-27): 가계부 설정: 올린 원본 개별·전체 삭제(지출·업무일지 내역은 평생 유지)
@@ -223,7 +224,7 @@ const {CATN,CATS,CAT_DEF,E,EK,EM,FIXED_G,GICON,GNAMES,MERGED,allTx,brandOf,catOf
    V1.00 (2026-10-26): 버전 새로 시작 — 가계부 — 월·연 분석, 생활·업무·기타 분류, 고정지출, 원본 보관·엑셀 내보내기, 동기화
    구조: 공통 코드는 독립 모듈(mod-*.js)로 분리, 이 파일은 화면만 담당 */
 const APP_NAME    = '가계부';
-const APP_VERSION = '1.11';
+const APP_VERSION = '1.12';
 const BUILD_DATE  = '2026-10-28';
 sync.configure({version:APP_VERSION});
 
@@ -440,11 +441,11 @@ function loadKakao(key){
   kakaoP.catch(()=>{ kakaoP=null; });
   return kakaoP;
 }
-const KCODE={FD6:'외식',CE7:MERGED,CS2:MERGED,MT1:MERGED,OL7:'주유·차량',PK6:'교통',SW8:'교통',HP8:'의료',PM9:'의료',BK9:'금융·수수료',PO3:'공공·세금',AT4:'여가·문화',AD5:'여가·문화',CT1:'여가·문화',AC5:'교육',SC4:'교육',PS3:'교육',AG2:'주거·공과금'};
+const KCODE={FD6:'외식',CE7:MERGED,CS2:MERGED,MT1:MERGED,OL7:'주유·차량',PK6:'교통',SW8:'교통',HP8:'의료',PM9:'의료',BK9:'금융·수수료',PO3:'공공·세금',AT4:'여가·문화',AD5:'여가·문화',CT1:'여가·문화',AC5:'교육',SC4:'교육',PS3:'교육',AG2:FIXED_NAME};
 function kakaoGroup(p){
   if(KCODE[p.category_group_code]) return KCODE[p.category_group_code];
   const c=p.category_name||'';
-  for(const [re,g] of [[/음식점/,'외식'],[/카페|간식|제과/,MERGED],[/의료|병원|약국/,'의료'],[/자동차|주유/,'주유·차량'],[/교통|주차/,'교통'],[/보험/,'보험'],[/통신/,'통신비'],[/교육|학원/,'교육'],[/여행|숙박|스포츠|문화|오락|레저/,'여가·문화'],[/슈퍼|마트|생활/,MERGED],[/쇼핑|패션|가구|가전/,'쇼핑']]) if(re.test(c)) return g;
+  for(const [re,g] of [[/음식점/,'외식'],[/카페|간식|제과/,MERGED],[/의료|병원|약국/,'의료'],[/자동차|주유/,'주유·차량'],[/교통|주차/,'교통'],[/보험/,'보험'],[/통신/,FIXED_NAME],[/교육|학원/,'교육'],[/여행|숙박|스포츠|문화|오락|레저/,'여가·문화'],[/슈퍼|마트|생활/,MERGED],[/쇼핑|패션|가구|가전/,'쇼핑']]) if(re.test(c)) return g;
   return null;
 }
 const kSearch=q=>new Promise(res=>{ try{ new kakao.maps.services.Places().keywordSearch(q,(d,st)=>res(st===kakao.maps.services.Status.OK?d:[]),{size:3}); }catch(e){ res([]); } });

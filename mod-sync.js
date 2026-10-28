@@ -1,6 +1,6 @@
 /* mod-sync.js — GitHub 비공개 Gist 동기화 엔진
    업무허브 · 업무일지 · 가계부가 함께 쓰는 독립 모듈. 공개 API만 M.sync로 내보냄.
-   MODULE sync V1.11 (2026-10-28) */
+   MODULE sync V1.12 (2026-10-28) */
 (function(M){
 const {$,bus,ls,metaOf}=M.base;
 /* GitHub 비공개 Gist 동기화 엔진 — 기록 종류(문서)를 register()로 등록하면 한 번 읽고, 합치고, 바뀐 파일만 한 번에 올림.

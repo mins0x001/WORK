@@ -1,6 +1,6 @@
 /* mod-ledger.js — 가계부 기록 · 분류 · 고정지출 · 카드 반영(importCore)
    업무허브 · 업무일지 · 가계부가 함께 쓰는 독립 모듈. 공개 API만 M.ledger로 내보냄.
-   MODULE ledger V1.11 (2026-10-28) */
+   MODULE ledger V1.12 (2026-10-28) */
 (function(M){
 const {$,CARD_CATS,bus,ls,metaOf,pad,rj,toast}=M.base;
 const {BIKE_MAX,LPG_RE,STATION_RE,classifyCard,isBigFuel,netCardTx,normM}=M.card;
@@ -22,16 +22,17 @@ function touch(keys){
 }
 /* ---- 분류 (같은 계열 묶기) ---- */
 const MERGED='편의점·마트·카페';                                                   // 편의점 + 카페·간식 + 마트·생활을 하나로 합친 세부 분류
-const GROUP_ALIAS={'편의점':MERGED,'카페·간식':MERGED,'마트·생활':MERGED};         // 예전에 저장된 분류 이름도 합친 이름으로 읽음
+const FIXED_NAME='고정비(주거·공과금·통신비)';                                      // 주거·공과금 + 통신비를 하나로 합친 세부 분류
+const GROUP_ALIAS={'편의점':MERGED,'카페·간식':MERGED,'마트·생활':MERGED,'통신비':FIXED_NAME,'주거·공과금':FIXED_NAME};         // 예전에 저장된 분류 이름도 합친 이름으로 읽음
 const normGroup=g=>GROUP_ALIAS[g]||g;
 const GROUPS=[      // 위에서부터 먼저 맞는 분류 (구체적인 것 먼저)
-  ['통신비','📱',/휴대폰알림|알림서비스|LGU|LG ?U\+|LG유플러스|유플러스|SKT|SK텔레콤|SK브로드밴드|\bKT\b|케이티|올레|헬로모바일|알뜰폰|세븐모바일|이야기모바일|통신요금|통신비|인터넷요금/i],
+  [FIXED_NAME,'🏠',/휴대폰알림|알림서비스|LGU|LG ?U\+|LG유플러스|유플러스|SKT|SK텔레콤|SK브로드밴드|\bKT\b|케이티|올레|헬로모바일|알뜰폰|세븐모바일|이야기모바일|통신요금|통신비|인터넷요금/i],
   ['보험','🛡️',/보험|화재해상|해상화재|손해보험|손보|생명|라이나|메리츠|현대해상|DB손|KB손|삼성화재|한화손|흥국|AIA|처브|캐롯|하나손/i],
   ['의료','💊',/병원|의원|약국|치과|한의원|안과|피부과|내과|외과|정형|소아과|이비인후|산부인과|비뇨|정신건강|재활|검진|요양|메디|클리닉/],
   ['주유·차량','⛽',/주유소|에너지|칼텍스|오일뱅크|S-?OIL|에쓰오일|충전소|요소수|유록스|세차|정비|타이어|카센터|카센타|공업사|자동차|오토|모터스|부품/i],
   ['통행료','🛣️',/도로공사|하이패스|통행료|고속도로|유료도로/],
   ['교통','🚌',/택시|카카오T|티머니|캐시비|버스|지하철|코레일|KTX|SRT|철도|주차|쏘카|그린카|따릉이|킥보드|항공/i],
-  ['주거·공과금','🏠',/입주자대표|관리비|관리사무소|도시가스|가스공사|한국전력|한전|전기요금|수도|상하수도|월세|부동산/],
+  [FIXED_NAME,'🏠',/입주자대표|관리비|관리사무소|도시가스|가스공사|한국전력|한전|전기요금|수도|상하수도|월세|부동산/],
   ['공공·세금','🏛️',/시청|구청|군청|도청|주민센터|행정복지|세무서|국세|지방세|우체국|경찰|법원|등기소|과태료|범칙금|정부24|민원/],
   ['교육','📚',/학원|교육|학교|유치원|어린이집|교재|강의|인강|클래스101|교습/],
   [MERGED,'🛒',/GS25|지에스\(?GS\)?25|씨유|\(CU\)|^CU|세븐일레븐|코리아세븐|이마트24|미니스톱|편의점/],
@@ -53,7 +54,7 @@ const CATS=[['life','생활비용','🏠'],['work','업무비용','🚚'],['etc'
 const CATN=Object.fromEntries(CATS.map(c=>[c[0],c[1]]));
 const CATI=Object.fromEntries(CATS.map(c=>[c[0],c[2]]));
 const CAT_DEF={'주유·차량':'work','통행료':'work','기타':'etc','금융·수수료':'etc','경조사':'etc'};   // 나머지(주거·대출·식비…)는 생활비용
-const FIXED_G=new Set(['주거·공과금','대출','통신비','보험']);                                      // 고정비로 보는 세부 분류
+const FIXED_G=new Set([FIXED_NAME,'대출','보험']);                                      // 고정비로 보는 세부 분류
 let _bf=null;
 let _bfE=null;
 let _bfN=-1;
@@ -214,5 +215,5 @@ if(sync){
   bus.on('sync:merged',()=>{ if(migrateWork()) sync.schedule(800); });                    // 합친 뒤 업무일지의 충전소·바이크 비용 정리
 }
 migrateWork();
-M.ledger={CATN,CATS,CAT_DEF,E,EK,EM,FIXED_G,GICON,GNAMES,MERGED,WK,allTx,brandOf,catOf,dropOriginals,groupOf,importCore,importMsg,pickGroup,replaceE,sumV,touch,ymKey,migrateWork};
+M.ledger={CATN,CATS,CAT_DEF,E,EK,EM,FIXED_G,FIXED_NAME,GICON,GNAMES,MERGED,WK,allTx,brandOf,catOf,dropOriginals,groupOf,importCore,importMsg,pickGroup,replaceE,sumV,touch,ymKey,migrateWork};
 })(window.M=window.M||{});
