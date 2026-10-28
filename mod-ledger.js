@@ -1,6 +1,6 @@
 /* mod-ledger.js — 가계부 기록 · 분류 · 고정지출 · 카드 반영(importCore)
    업무허브 · 업무일지 · 가계부가 함께 쓰는 독립 모듈. 공개 API만 M.ledger로 내보냄.
-   MODULE ledger V1.13 (2026-10-28) */
+   MODULE ledger V1.14 (2026-10-28) */
 (function(M){
 const {$,CARD_CATS,bus,ls,metaOf,pad,rj,toast}=M.base;
 const {BIKE_MAX,LPG_RE,STATION_RE,classifyCard,isBigFuel,netCardTx,normM}=M.card;
@@ -22,8 +22,9 @@ function touch(keys){
 }
 /* ---- 분류 (같은 계열 묶기) ---- */
 const MERGED='식비';                                                              // 외식 + 편의점 + 카페·간식 + 마트·생활을 하나로 합친 세부 분류
+const SHOP_NAME='쇼핑·생필품';                                                      // 쇼핑 + 생필품(다이소·올리브영 등 생활용품점)을 하나로 합친 세부 분류
 const FIXED_NAME='고정비(주거·공과금·통신비)';                                      // 주거·공과금 + 통신비를 하나로 합친 세부 분류
-const GROUP_ALIAS={'외식':MERGED,'편의점·마트·카페':MERGED,'편의점':MERGED,'카페·간식':MERGED,'마트·생활':MERGED,'통신비':FIXED_NAME,'주거·공과금':FIXED_NAME};         // 예전에 저장된 분류 이름도 합친 이름으로 읽음
+const GROUP_ALIAS={'쇼핑':SHOP_NAME,'외식':MERGED,'편의점·마트·카페':MERGED,'편의점':MERGED,'카페·간식':MERGED,'마트·생활':MERGED,'통신비':FIXED_NAME,'주거·공과금':FIXED_NAME};         // 예전에 저장된 분류 이름도 합친 이름으로 읽음
 const normGroup=g=>GROUP_ALIAS[g]||g;
 const GROUPS=[      // 위에서부터 먼저 맞는 분류 (구체적인 것 먼저)
   [FIXED_NAME,'🏠',/휴대폰알림|알림서비스|LGU|LG ?U\+|LG유플러스|유플러스|SKT|SK텔레콤|SK브로드밴드|\bKT\b|케이티|올레|헬로모바일|알뜰폰|세븐모바일|이야기모바일|통신요금|통신비|인터넷요금/i],
@@ -38,8 +39,8 @@ const GROUPS=[      // 위에서부터 먼저 맞는 분류 (구체적인 것 �
   [MERGED,'🍚',/GS25|지에스\(?GS\)?25|씨유|\(CU\)|^CU|세븐일레븐|코리아세븐|이마트24|미니스톱|편의점/],
   [MERGED,'🍚',/커피|스타벅스|카페|투썸|이디야|빽다방|메가엠지씨|메가커피|컴포즈|할리스|폴바셋|커피빈|탐앤탐스|더벤티|매머드|파리바게|뚜레쥬르|베이커리|제과|브레드|배스킨|베스킨|던킨|크리스피|공차|설빙|빙수|디저트|케이크|마카롱|도넛|와플|아이스크림|요거|떡집|빵/],
   [MERGED,'🍚',/아웃백|빕스|애슐리|하누돈|한우|한돈|정육식당|고깃|고기|삼겹|갈비|등심|BBQ|비비큐|교촌|BHC|굽네|네네|처갓집|호식이|치킨|맘스터치|버거|맥도날드|롯데리아|KFC|써브웨이|서브웨이|피자|도미노|본죽|죽이야기|김밥|분식|떡볶이|찜닭|두찜|마라|양꼬치|쌀국수|라멘|우동|소바|돈까스|돈가스|돈카츠|규동|덮밥|백반|한정식|정식|밥상|밥집|국시|면옥|냉면|칼국수|수제비|국수|국밥|해장|설렁탕|곰탕|감자탕|순대|보쌈|족발|곱창|막창|대창|닭갈비|닭발|닭한마리|닭|오리|장어|해물|아구|아귀|대게|꽃게|조개|낙지|쭈꾸미|주꾸미|횟집|수산|초밥|스시|오마카세|이자카야|포차|호프|술집|한식|중식|일식|양식|뷔페|식당|반점|짜장|짬뽕|가든|숯불|화로|찌개|탕|찹쌀/i],
-  [MERGED,'🍚',/마트|하나로|농협|노브랜드|이마트|트레이더스|홈플러스|코스트코|GS더프레시|롯데슈퍼|식자재|정육점|청과|과일|야채|반찬|다이소|아성|올리브영|생활용품|세탁|철물|무인/],
-  ['쇼핑','🛍️',/쿠팡|11번가|G마켓|지마켓|옥션|SSG|무신사|유니클로|탑텐|스파오|ZARA|나이키|아디다스|백화점|아울렛|신세계|롯데쇼핑|의류|신발|안경|문구|교보|알라딘|예스24|네이버페이|카카오페이/i],
+  [MERGED,'🍚',/마트|하나로|농협|노브랜드|이마트|트레이더스|홈플러스|코스트코|GS더프레시|롯데슈퍼|식자재|정육점|청과|과일|야채|반찬/],
+  [SHOP_NAME,'🛍️',/다이소|아성|올리브영|생활용품|세탁|철물|무인|쿠팡|11번가|G마켓|지마켓|옥션|SSG|무신사|유니클로|탑텐|스파오|ZARA|나이키|아디다스|백화점|아울렛|신세계|롯데쇼핑|의류|신발|안경|문구|교보|알라딘|예스24|네이버페이|카카오페이/i],
   ['여가·문화','🎬',/CGV|롯데시네마|메가박스|영화|넷플릭스|NETFLIX|유튜브|YOUTUBE|티빙|웨이브|디즈니|멜론|스포티파이|노래|PC방|피씨방|볼링|당구|헬스|골프|스크린|사우나|찜질|호텔|모텔|펜션|숙박|여행|야놀자|여기어때|에어비앤비|테마파크/i],
   ['대출','🏦',/대출|캐피탈|카드론|원리금|주택금융|HF|이자상환/],
   ['경조사','🎁',/축의|조의|부의|경조|기부|헌금|후원/],
@@ -215,5 +216,5 @@ if(sync){
   bus.on('sync:merged',()=>{ if(migrateWork()) sync.schedule(800); });                    // 합친 뒤 업무일지의 충전소·바이크 비용 정리
 }
 migrateWork();
-M.ledger={CATN,CATS,CAT_DEF,E,EK,EM,FIXED_G,FIXED_NAME,GICON,GNAMES,MERGED,WK,allTx,brandOf,catOf,dropOriginals,groupOf,importCore,importMsg,pickGroup,replaceE,sumV,touch,ymKey,migrateWork};
+M.ledger={CATN,CATS,CAT_DEF,E,EK,EM,FIXED_G,FIXED_NAME,GICON,GNAMES,MERGED,SHOP_NAME,WK,allTx,brandOf,catOf,dropOriginals,groupOf,importCore,importMsg,pickGroup,replaceE,sumV,touch,ymKey,migrateWork};
 })(window.M=window.M||{});

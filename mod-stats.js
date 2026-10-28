@@ -1,6 +1,6 @@
 /* mod-stats.js — 업무일지 기록 모델 · 근무 기간 · 집계 (순수 계산)
    업무허브 · 업무일지 · 가계부가 함께 쓰는 독립 모듈. 공개 API만 M.stats로 내보냄.
-   MODULE stats V1.13 (2026-10-28) */
+   MODULE stats V1.14 (2026-10-28) */
 (function(M){
 const {$,CARD_CATS,addDays,keyOf}=M.base;
 const {holNames}=M.holiday;
