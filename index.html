@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>업무허브 V1.17 (2026-10-29)</title>
+<title>업무허브 V1.18 (2026-10-29)</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
@@ -86,17 +86,18 @@ textarea{width:100%;min-height:160px;border-radius:12px;border:1.5px solid var(-
 <input type="file" id="file" accept=".xlsx,.csv,.txt,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,text/plain" hidden>
 <div class="toast" id="toast"></div>
 
-<script src="mod-base.js?v=1.17-2026-10-29"></script>
-<script src="mod-xlsxr.js?v=1.17-2026-10-29"></script>
-<script src="mod-card.js?v=1.17-2026-10-29"></script>
-<script src="mod-sync.js?v=1.17-2026-10-29"></script>
-<script src="mod-ledger.js?v=1.17-2026-10-29"></script>
+<script src="mod-base.js?v=1.18-2026-10-29"></script>
+<script src="mod-xlsxr.js?v=1.18-2026-10-29"></script>
+<script src="mod-card.js?v=1.18-2026-10-29"></script>
+<script src="mod-sync.js?v=1.18-2026-10-29"></script>
+<script src="mod-ledger.js?v=1.18-2026-10-29"></script>
 <script>
 const {$,bus,escH,fmt,keyOf,metaOf,rj,toast}=M.base;
 const {pasteTx,readCardFile}=M.card;
 const sync=M.sync;
 const {E,EK,EM,WK,allTx,catOf,importCore,importMsg,replaceE,sumV,ymKey}=M.ledger;
 /* ================= 버전 정보 (하드코딩) =================
+   V1.18 (2026-10-29): 운송비 추이: 평균 카드를 월별 비교표로 개선(최소·최대 삭제, 평균 대비 ▲▼)
    V1.17 (2026-10-29): 운송비: 기본 운임 일평균·실수령 일평균 표시 삭제(공급가액 일평균만 표시)
    V1.16 (2026-10-29): 운송비 명세서 앱 추가(fare.html): 엑셀·CSV·붙여넣기 자동 인식·검산·적정 운임·평균·추세·업무일지 대조, 허브 타일, mod-xlsxr 분리
    V1.15 (2026-10-29): 사업소 → 의기아 거리 20km → 22km
@@ -117,7 +118,7 @@ const {E,EK,EM,WK,allTx,catOf,importCore,importMsg,replaceE,sumV,ymKey}=M.ledger
    V1.00 (2026-10-26): 버전 새로 시작 — 업무허브 — 카드 엑셀·붙여넣기 올리기(형식 자유·미리보기), 업무일지·가계부 이동, 이번 달 요약
    구조: 공통 코드는 독립 모듈(mod-*.js)로 분리, 이 파일은 화면만 담당 */
 const APP_NAME    = '업무허브';
-const APP_VERSION = '1.17';
+const APP_VERSION = '1.18';
 const BUILD_DATE  = '2026-10-29';
 sync.configure({version:APP_VERSION});
 

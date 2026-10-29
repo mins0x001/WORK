@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>운송비 V1.17 (2026-10-29)</title>
+<title>운송비 V1.18 (2026-10-29)</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
@@ -130,6 +130,16 @@ textarea{width:100%;min-height:150px;border-radius:12px;border:1.5px solid var(-
 .pill.bd{background:rgba(240,71,90,.14)}.pill.wn{background:rgba(245,165,36,.14)}.pill.ok{background:rgba(56,217,140,.12)}
 .mini{min-height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--border);background:var(--panel-3);font-size:12.5px;font-weight:700}
 .itm{display:grid;grid-template-columns:1fr 112px 32px;gap:6px;margin-bottom:6px}.itm input{min-width:0;border:1.5px solid var(--soft);background:var(--panel-2);border-radius:10px;padding:9px 10px;font-size:14px;outline:none}.itm input.num{text-align:right}.itm button{border:1px solid var(--border);background:var(--panel-3);border-radius:10px;color:var(--down);font-weight:800}
+.cmp{display:flex;flex-direction:column;gap:6px}
+.ch2,.cr{display:grid;grid-template-columns:50px repeat(4,1fr);gap:2px 6px;align-items:start}
+.ch2{font-size:10.5px;font-weight:800;color:var(--faint);text-align:right;padding:0 8px}.ch2 span:first-child{text-align:left}
+.cr{width:100%;text-align:right;border:1px solid var(--soft);background:var(--panel-2);border-radius:14px;padding:10px 8px}
+.cr b{text-align:left;font-size:14px;font-weight:800;display:block}.cr b em{display:block;font-style:normal;font-size:10.5px;color:var(--faint);font-weight:600}
+.cr .num{font-size:12px;letter-spacing:-.04em;font-weight:700;min-width:0}
+.cr i{display:block;font-style:normal;font-size:10.5px;font-weight:800;margin-top:2px}
+.cr small{grid-column:1/-1;text-align:left;font-size:11px;color:var(--faint);padding-top:6px;border-top:1px dashed var(--soft);margin-top:4px}
+.cr.av{background:linear-gradient(180deg,rgba(94,234,212,.14),rgba(94,234,212,.05));border-color:rgba(94,234,212,.4)}.cr.av b,.cr.av .num{color:var(--glow)}
+button.cr:active{transform:scale(.985)}
 .hint{font-size:11.5px;color:var(--faint);margin:2px 2px 10px;line-height:1.6}
 details.raw summary{cursor:pointer;font-size:12px;color:var(--faint);padding:6px 0}details.raw pre{white-space:pre-wrap;font-size:11.5px;color:var(--dim);background:var(--panel-2);border-radius:10px;padding:8px;margin:0;overflow-wrap:anywhere}
 
@@ -226,13 +236,13 @@ details.raw summary{cursor:pointer;font-size:12px;color:var(--faint);padding:6px
 <input type="file" id="rsFile" accept=".json,application/json" hidden>
 <div class="toast" id="toast"></div>
 
-<script src="mod-base.js?v=1.17-2026-10-29"></script>
-<script src="mod-sync.js?v=1.17-2026-10-29"></script>
-<script src="mod-xlsxr.js?v=1.17-2026-10-29"></script>
-<script src="mod-fare.js?v=1.17-2026-10-29"></script>
-<script src="mod-holiday.js?v=1.17-2026-10-29"></script>
-<script src="mod-dealer.js?v=1.17-2026-10-29"></script>
-<script src="mod-stats.js?v=1.17-2026-10-29"></script>
+<script src="mod-base.js?v=1.18-2026-10-29"></script>
+<script src="mod-sync.js?v=1.18-2026-10-29"></script>
+<script src="mod-xlsxr.js?v=1.18-2026-10-29"></script>
+<script src="mod-fare.js?v=1.18-2026-10-29"></script>
+<script src="mod-holiday.js?v=1.18-2026-10-29"></script>
+<script src="mod-dealer.js?v=1.18-2026-10-29"></script>
+<script src="mod-stats.js?v=1.18-2026-10-29"></script>
 <script>
 const {$,bus,escH,fmt,keyOf,metaOf,pad,rj,toast}=M.base;
 const sync=M.sync;
@@ -240,11 +250,12 @@ const {xlsxRows}=M.xlsxr;
 const {F,FARE_KEY,FARE_KIND_NAME,FARE_META,fareAll,fareAnalyze,fareCheck,fareDel,fareDerive,fareKind,fareLink,fareParse,farePut,fareReadFile,fareReplace,fareSaveSettings,fareSettings,frHas,frNum}=M.fare;
 const {normalize,statsFor}=M.stats;
 /* ================= 버전 정보 (하드코딩) =================
+   V1.18 (2026-10-29): 운송비 추이: 평균 카드를 월별 비교표로 개선(최소·최대 삭제, 평균 대비 ▲▼)
    V1.17 (2026-10-29): 운송비: 기본 운임 일평균·실수령 일평균 표시 삭제(공급가액 일평균만 표시)
    V1.16 (2026-10-29): 운송비 명세서 앱 추가(fare.html): 엑셀·CSV·붙여넣기 자동 인식·검산·적정 운임·평균·추세·업무일지 대조, 허브 타일, mod-xlsxr 분리
    구조: 읽기·검산·분석은 독립 모듈(mod-fare.js), 엑셀 읽기는 mod-xlsxr.js, 이 파일은 화면만 담당 */
 const APP_NAME    = '운송비';
-const APP_VERSION = '1.17';
+const APP_VERSION = '1.18';
 const BUILD_DATE  = '2026-10-29';
 sync.configure({version:APP_VERSION});
 fareLink(sync);
@@ -315,10 +326,13 @@ function renderTrend(){
   const gl=[]; if(A.gaps.length) gl.push({lv:'bad',t:'누락된 달: '+A.gaps.map(ymT).join(', ')+' → 명세서를 올려 주세요'});
   R.forEach(r=>r.flags.forEach(f=>{ if(f.lv!=='ok') gl.push({lv:f.lv,t:ymT(r.s.ym)+' '+f.t+': '+f.msg}); }));
   $('cTAi').innerHTML=`<div class="ban ${gl.some(x=>x.lv==='bad')?'bd':gl.length?'wn':'ok'}"><b>${gl.length?'확인할 내용 '+gl.length+'건':'✔ 누락·이상 없음'}</b>${gl.length?'<ul>'+gl.map(x=>`<li>${escH(x.t)}</li>`).join('')+'</ul>':` — ${R.length}개월 모두 검산이 맞고 빠진 달이 없습니다.`}</div>`;
-  const rows=[['차인지급액','net',fmt],['공급가액(계)','sub',fmt],['공급가액 일평균','perDay',fmt],['km당 운임','perKm',fmt],['유류변동','fuel',fmt],['운행일수','days',v=>v.toFixed(1)],['운행거리 km','km',fmt],['공제율','dedRate',pc]];
-  $('cAvg').innerHTML=`<div class="ch"><h2>📊 평균 · 최소 · 최대</h2><small>${R.length}개월</small></div><div class="tb4"><div class="h">항목</div><div class="h r">전체평균</div><div class="h r">최근3개월</div><div class="h r">최소</div><div class="h r">최대</div>`
-    +rows.map(([n,k,f])=>{ const a=A.avg[k]; const c=v=>v==null?'-':f(v); return `<div>${n}</div><div class="r num">${c(a.all.avg)}</div><div class="r num">${c(a.r3.avg)}</div><div class="r num" style="color:var(--dim)">${c(a.all.min)}</div><div class="r num" style="color:var(--dim)">${c(a.all.max)}</div>`; }).join('')+'</div>'
-    +`<div class="kv" style="margin-top:8px"><span>누적 (일수 ${A.tot.days}일 · ${fmt(A.tot.km)}km)</span><b class="num">${fmt(A.tot.net)}원</b></div>`;
+  const C=[['차인지급액','net',1],['일평균(공급가)','perDay',1],['km당 운임','perKm',1],['유류변동','fuel',0]];
+  const dl=(v,av,dir)=>{ if(v==null||!av||!dir) return ''; const q=(v-av)/Math.abs(av); if(Math.abs(q)<0.005) return ''; return `<i class="${(dir>0?q>0:q<0)?'ok':'wn'}">${q>0?'▲':'▼'}${Math.abs(q*100).toFixed(1)}%</i>`; };
+  const av=Object.fromEntries(C.map(([,k])=>[k,A.avg[k].all.avg]));
+  $('cAvg').innerHTML=`<div class="ch"><h2>📊 월별 비교 · 평균</h2><small>${R.length}개월</small></div><div class="cmp"><div class="ch2"><span>월</span>${C.map(c=>`<span>${c[0]}</span>`).join('')}</div>`
+    +`<div class="cr av"><b>평균</b>${C.map(([,k])=>`<span class="num">${av[k]==null?'-':fmt(av[k])}</span>`).join('')}<small>${R.length}개월 평균 · 일수 ${A.avg.days.all.avg==null?'-':A.avg.days.all.avg.toFixed(1)}일 · 공제율 ${pc(A.avg.dedRate.all.avg)}</small></div>`
+    +R.slice().reverse().map(r=>`<button class="cr" type="button" data-ym="${r.s.ym}"><b>${+r.s.ym.slice(5)}월<em>${String(r.s.ym.slice(2,4))}년</em></b>${C.map(([,k,dir])=>{ const v=r.d[k]; return `<span class="num">${v==null?'-':fmt(v)}${dl(v,av[k],dir)}</span>`; }).join('')}<small>${[r.s.days!=null?r.s.days+'일':'',r.d.km!=null?fmt(r.d.km)+'km':'',r.d.dedRate!=null?'공제율 '+pc(r.d.dedRate):''].filter(Boolean).join(' · ')}</small></button>`).join('')+`</div>`
+    +`<div class="hint" style="margin:8px 2px 0">▲▼ = 평균 대비 · <span class="ok">초록</span> 유리 · <span class="wn">주황</span> 불리 · 월을 누르면 그 달 요약</div><div class="kv" style="margin-top:6px"><span>누적 (${A.tot.days}일 · ${fmt(A.tot.km)}km)</span><b class="num">${fmt(A.tot.net)}원</b></div>`;
   const mx=Math.max(...R.map(r=>r.d.net),1);
   $('cBars').innerHTML=`<div class="ch"><h2>📈 월별 차인지급액</h2><small>누르면 요약</small></div>`+R.slice().reverse().map(r=>{ const bad=r.flags.some(f=>f.lv==='bad'), wn=r.flags.some(f=>f.lv==='warn'); return `<button class="mb" type="button" data-ym="${r.s.ym}" style="grid-template-columns:54px 1fr auto"><span>${+r.s.ym.slice(5)}월${bad?'<i class="pill bd">!</i>':wn?'<i class="pill wn">?</i>':''}</span><span class="tr"><i style="width:${Math.max(3,r.d.net/mx*100)}%"></i></span><b class="num">${fmt(r.d.net)}</b></button>`; }).join('');
 }
