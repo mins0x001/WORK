@@ -1,6 +1,6 @@
 /* mod-card.js — 카드 내역 읽기(엑셀·CSV·붙여넣기) · 중복 상계 · 업무 비용 분류
    업무허브 · 업무일지 · 가계부가 함께 쓰는 독립 모듈. 공개 API만 M.card로 내보냄.
-   MODULE card V1.16 (2026-10-29) */
+   MODULE card V1.17 (2026-10-29) */
 (function(M){
 const {$,CARD_CATS,ls,pad}=M.base;
 const {xlsxRows}=M.xlsxr;

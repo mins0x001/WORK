@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>운송비 V1.16 (2026-10-29)</title>
+<title>운송비 V1.17 (2026-10-29)</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
@@ -226,13 +226,13 @@ details.raw summary{cursor:pointer;font-size:12px;color:var(--faint);padding:6px
 <input type="file" id="rsFile" accept=".json,application/json" hidden>
 <div class="toast" id="toast"></div>
 
-<script src="mod-base.js?v=1.16-2026-10-29"></script>
-<script src="mod-sync.js?v=1.16-2026-10-29"></script>
-<script src="mod-xlsxr.js?v=1.16-2026-10-29"></script>
-<script src="mod-fare.js?v=1.16-2026-10-29"></script>
-<script src="mod-holiday.js?v=1.16-2026-10-29"></script>
-<script src="mod-dealer.js?v=1.16-2026-10-29"></script>
-<script src="mod-stats.js?v=1.16-2026-10-29"></script>
+<script src="mod-base.js?v=1.17-2026-10-29"></script>
+<script src="mod-sync.js?v=1.17-2026-10-29"></script>
+<script src="mod-xlsxr.js?v=1.17-2026-10-29"></script>
+<script src="mod-fare.js?v=1.17-2026-10-29"></script>
+<script src="mod-holiday.js?v=1.17-2026-10-29"></script>
+<script src="mod-dealer.js?v=1.17-2026-10-29"></script>
+<script src="mod-stats.js?v=1.17-2026-10-29"></script>
 <script>
 const {$,bus,escH,fmt,keyOf,metaOf,pad,rj,toast}=M.base;
 const sync=M.sync;
@@ -240,10 +240,11 @@ const {xlsxRows}=M.xlsxr;
 const {F,FARE_KEY,FARE_KIND_NAME,FARE_META,fareAll,fareAnalyze,fareCheck,fareDel,fareDerive,fareKind,fareLink,fareParse,farePut,fareReadFile,fareReplace,fareSaveSettings,fareSettings,frHas,frNum}=M.fare;
 const {normalize,statsFor}=M.stats;
 /* ================= 버전 정보 (하드코딩) =================
+   V1.17 (2026-10-29): 운송비: 기본 운임 일평균·실수령 일평균 표시 삭제(공급가액 일평균만 표시)
    V1.16 (2026-10-29): 운송비 명세서 앱 추가(fare.html): 엑셀·CSV·붙여넣기 자동 인식·검산·적정 운임·평균·추세·업무일지 대조, 허브 타일, mod-xlsxr 분리
    구조: 읽기·검산·분석은 독립 모듈(mod-fare.js), 엑셀 읽기는 mod-xlsxr.js, 이 파일은 화면만 담당 */
 const APP_NAME    = '운송비';
-const APP_VERSION = '1.16';
+const APP_VERSION = '1.17';
 const BUILD_DATE  = '2026-10-29';
 sync.configure({version:APP_VERSION});
 fareLink(sync);
@@ -300,7 +301,7 @@ function renderSum(){
     +(s.kmFrom!=null?kv('운행거리',fmt(s.kmFrom)+' → '+fmt(s.kmTo)+'km',d.km!=null?'+'+fmt(d.km)+'km':''):'')
     +(s.raw?`<details class="raw"><summary>원본 글자 보기</summary><pre>${escH(s.raw)}</pre></details>`:'');
   $('cChk').innerHTML=`<div class="ch"><h2>🔍 검산</h2><small>${r.issues.filter(x=>x.lv==='ok').length}/${r.issues.length} 일치</small></div>`+r.issues.map(x=>`<div class="chk"><i class="${CLS[x.lv]}">${ICON[x.lv]}</i><span><b>${escH(x.t)}</b> ${escH(x.msg)}</span></div>`).join('');
-  const MET=[['perDay','공급가액 일평균','원',fmt],['basePerDay','기본 운임 일평균','원',fmt],['netPerDay','실수령 일평균','원',fmt],['perKm','km당 운임','원',v=>fmt(v)],['fuelPerKm','km당 유류변동','원',v=>fmt(v)],['dedRate','공제율','',pc]];
+  const MET=[['perDay','공급가액 일평균','원',fmt],['perKm','km당 운임','원',v=>fmt(v)],['fuelPerKm','km당 유류변동','원',v=>fmt(v)],['dedRate','공제율','',pc]];
   $('cMet').innerHTML=`<div class="ch"><h2>📐 이번 달 지표</h2><small>${A.rows.length}개월 평균과 비교</small></div><div class="mt"><div class="h">지표</div><div class="h r">이번 달</div><div class="h r">평균</div>`
     +MET.map(([k,n,u,f])=>{ const v=d[k], a=A.avg[k]&&A.avg[k].all.avg; return `<div>${n}</div><div class="r num">${v==null?'-':f(v)+u}</div><div class="r num" style="color:var(--dim)">${a==null?'-':f(a)+u}</div>`; }).join('')+'</div>'
     +(r.refBasis&&r.expBase?`<div class="note" style="margin:10px 0 0">⚖️ <b>적정 운임</b> (${escH(r.refBasis.label)} ${fmt(r.refBasis.daily)}원 × ${s.days}일) = <b>${fmt(r.expBase)}원</b> · 실제 기본 운임 <b>${fmt(d.base)}원</b> → <b class="${r.gapPct<-fareSettings().tol/100?'bd':'ok'}">${sg(r.gap)}원 (${(r.gapPct*100).toFixed(1)}%)</b></div>`:'<div class="hint" style="margin-top:8px">다른 달 명세서를 더 올리거나 설정에서 기준 일당을 넣으면 적정 운임을 비교합니다.</div>');
@@ -314,7 +315,7 @@ function renderTrend(){
   const gl=[]; if(A.gaps.length) gl.push({lv:'bad',t:'누락된 달: '+A.gaps.map(ymT).join(', ')+' → 명세서를 올려 주세요'});
   R.forEach(r=>r.flags.forEach(f=>{ if(f.lv!=='ok') gl.push({lv:f.lv,t:ymT(r.s.ym)+' '+f.t+': '+f.msg}); }));
   $('cTAi').innerHTML=`<div class="ban ${gl.some(x=>x.lv==='bad')?'bd':gl.length?'wn':'ok'}"><b>${gl.length?'확인할 내용 '+gl.length+'건':'✔ 누락·이상 없음'}</b>${gl.length?'<ul>'+gl.map(x=>`<li>${escH(x.t)}</li>`).join('')+'</ul>':` — ${R.length}개월 모두 검산이 맞고 빠진 달이 없습니다.`}</div>`;
-  const rows=[['차인지급액','net',fmt],['공급가액(계)','sub',fmt],['공급가액 일평균','perDay',fmt],['기본 운임 일평균','basePerDay',fmt],['실수령 일평균','netPerDay',fmt],['km당 운임','perKm',fmt],['유류변동','fuel',fmt],['운행일수','days',v=>v.toFixed(1)],['운행거리 km','km',fmt],['공제율','dedRate',pc]];
+  const rows=[['차인지급액','net',fmt],['공급가액(계)','sub',fmt],['공급가액 일평균','perDay',fmt],['km당 운임','perKm',fmt],['유류변동','fuel',fmt],['운행일수','days',v=>v.toFixed(1)],['운행거리 km','km',fmt],['공제율','dedRate',pc]];
   $('cAvg').innerHTML=`<div class="ch"><h2>📊 평균 · 최소 · 최대</h2><small>${R.length}개월</small></div><div class="tb4"><div class="h">항목</div><div class="h r">전체평균</div><div class="h r">최근3개월</div><div class="h r">최소</div><div class="h r">최대</div>`
     +rows.map(([n,k,f])=>{ const a=A.avg[k]; const c=v=>v==null?'-':f(v); return `<div>${n}</div><div class="r num">${c(a.all.avg)}</div><div class="r num">${c(a.r3.avg)}</div><div class="r num" style="color:var(--dim)">${c(a.all.min)}</div><div class="r num" style="color:var(--dim)">${c(a.all.max)}</div>`; }).join('')+'</div>'
     +`<div class="kv" style="margin-top:8px"><span>누적 (일수 ${A.tot.days}일 · ${fmt(A.tot.km)}km)</span><b class="num">${fmt(A.tot.net)}원</b></div>`;
