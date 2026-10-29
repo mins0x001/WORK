@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>가계부 V1.15 (2026-10-29)</title>
+<title>가계부 V1.16 (2026-10-29)</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
@@ -200,15 +200,17 @@ textarea{width:100%;min-height:150px;border-radius:12px;border:1.5px solid var(-
 <input type="file" id="rsFile" accept=".json,application/json" hidden>
 <div class="toast" id="toast"></div>
 
-<script src="mod-base.js?v=1.15-2026-10-29"></script>
-<script src="mod-card.js?v=1.15-2026-10-29"></script>
-<script src="mod-sync.js?v=1.15-2026-10-29"></script>
-<script src="mod-ledger.js?v=1.15-2026-10-29"></script>
+<script src="mod-base.js?v=1.16-2026-10-29"></script>
+<script src="mod-xlsxr.js?v=1.16-2026-10-29"></script>
+<script src="mod-card.js?v=1.16-2026-10-29"></script>
+<script src="mod-sync.js?v=1.16-2026-10-29"></script>
+<script src="mod-ledger.js?v=1.16-2026-10-29"></script>
 <script>
 const {$,WD,XL,bus,escH,fmt,keyOf,ls,metaOf,pad,parseKey,rj,toast}=M.base;
 const sync=M.sync;
 const {CATN,CATS,CAT_DEF,E,EK,EM,FIXED_G,FIXED_NAME,GICON,GNAMES,MERGED,SHOP_NAME,allTx,brandOf,catOf,dropOriginals,groupOf,pickGroup,replaceE,sumV,touch}=M.ledger;
 /* ================= 버전 정보 (하드코딩) =================
+   V1.16 (2026-10-29): 운송비 명세서 앱 추가(fare.html): 엑셀·CSV·붙여넣기 자동 인식·검산·적정 운임·평균·추세·업무일지 대조, 허브 타일, mod-xlsxr 분리
    V1.15 (2026-10-29): 사업소 → 의기아 거리 20km → 22km
    V1.14 (2026-10-28): 가계부: 다이소·올리브영 등 생활용품점을 '쇼핑·생필품'(쇼핑 + 생필품)으로 통합
    V1.13 (2026-10-28): 가계부: 외식·편의점·카페·마트를 '식비' 하나로 통합(예전 기록 자동 호환)
@@ -227,7 +229,7 @@ const {CATN,CATS,CAT_DEF,E,EK,EM,FIXED_G,FIXED_NAME,GICON,GNAMES,MERGED,SHOP_NAM
    V1.00 (2026-10-26): 버전 새로 시작 — 가계부 — 월·연 분석, 생활·업무·기타 분류, 고정지출, 원본 보관·엑셀 내보내기, 동기화
    구조: 공통 코드는 독립 모듈(mod-*.js)로 분리, 이 파일은 화면만 담당 */
 const APP_NAME    = '가계부';
-const APP_VERSION = '1.15';
+const APP_VERSION = '1.16';
 const BUILD_DATE  = '2026-10-29';
 sync.configure({version:APP_VERSION});
 

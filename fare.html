@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0A1120">
+<meta name="release-date" content="2026-10-29">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="운송비">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>운송비 V1.16 (2026-10-29)</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+:root{--bg:#0A1120;--panel:#0F182A;--panel-2:#0B1322;--panel-3:#131F36;--border:#1C2842;--soft:#162137;
+  --text:#E6ECF5;--dim:#8E9AB0;--faint:#5F6B82;--glow:#5EEAD4;--amber:#F5A524;--up:#38D98C;--down:#F0475A;--violet:#A78BFA;color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:'Pretendard','Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:15px;-webkit-font-smoothing:antialiased}
+body{background:radial-gradient(900px 420px at 50% -8%,#142242 0%,var(--bg) 60%) fixed,var(--bg);padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+button,input,select,textarea{font-family:inherit;color:inherit}
+button{cursor:pointer}
+[hidden]{display:none!important}
+.num{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.top{position:sticky;top:0;z-index:6;padding:calc(8px + env(safe-area-inset-top)) 12px 8px;background:rgba(10,17,32,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.top-in,main{max-width:560px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:8px;padding:0 2px 8px}
+.brand b{font-size:19px;font-weight:900}.brand b span{color:var(--glow)}
+.lnk{font-size:12px;font-weight:700;color:var(--dim);text-decoration:none;border:1px solid var(--border);border-radius:99px;padding:4px 10px;white-space:nowrap}
+.chip{min-height:28px;padding:0 10px;border-radius:99px;border:1px solid var(--border);background:var(--panel-2);color:var(--faint);font-size:11.5px;font-weight:700}
+.chip.ok{color:var(--glow);border-color:rgba(94,234,212,.4)}.chip.err{color:var(--amber);border-color:rgba(245,165,36,.45)}
+.ver{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11.5px;font-weight:700;color:var(--glow);border:1px solid rgba(94,234,212,.4);background:rgba(94,234,212,.08);border-radius:8px;padding:3px 8px}
+.pnav{display:flex;align-items:center;gap:8px}
+.arw{width:44px;height:44px;border:1px solid var(--border);border-radius:12px;background:var(--panel-2);font-size:22px}
+.mid{flex:1;text-align:center}.mid b{font-size:18px;font-weight:800}
+.tbtn{border:1px solid rgba(94,234,212,.35);background:rgba(94,234,212,.08);color:var(--glow);border-radius:99px;padding:3px 12px;font-size:11.5px;font-weight:700;margin-left:6px;vertical-align:2px}
+main{padding:12px 12px 24px}
+.page{display:none}.page.on{display:block}
+.card{background:linear-gradient(180deg,var(--panel),#0D1525);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:12px}
+.ch{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.ch h2{margin:0;font-size:16px;font-weight:800}.ch small{margin-left:auto;font-size:11.5px;color:var(--faint);text-align:right}
+.big{font-size:34px;font-weight:800;letter-spacing:-.03em;color:var(--glow);line-height:1.1}
+.big small{font-size:15px;color:var(--dim);margin-left:3px;font-family:'Pretendard',sans-serif}
+.sub{font-size:12.5px;color:var(--dim);margin-top:4px;line-height:1.6}
+.dl{display:inline-block;margin-top:8px;padding:4px 10px;border-radius:99px;font-size:12.5px;font-weight:800}
+.dl.up{background:rgba(240,71,90,.12);color:var(--down)}.dl.dn{background:rgba(56,217,140,.12);color:var(--up)}.dl.eq{background:var(--panel-3);color:var(--dim)}
+.split{display:flex;gap:6px;margin-top:12px}
+.split div{flex:1;background:var(--panel-2);border:1px solid var(--soft);border-radius:12px;padding:9px 10px}
+.split span{display:block;font-size:11.5px;color:var(--faint)}.split b{font-size:15px}
+.cats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.cat{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px;border-radius:14px;border:1.5px solid var(--border);background:var(--panel-2);text-align:left;min-width:0}
+.cat span{font-size:12px;font-weight:700;color:var(--dim);white-space:nowrap}.cat b{font-size:15px;font-weight:800}.cat small{font-size:11px;color:var(--faint);white-space:nowrap}
+.cat.on{border-color:var(--glow);background:rgba(94,234,212,.1)}.cat.on span{color:var(--glow)}
+.chips{display:flex;gap:6px;margin-bottom:8px;overflow-x:auto}
+.chipc{flex:none;min-height:36px;padding:0 14px;border-radius:99px;border:1px solid var(--border);background:var(--panel-2);font-size:13px;font-weight:700;color:var(--dim)}
+.chipc.on{color:#04211C;background:var(--glow);border-color:var(--glow)}
+.ecats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
+.ecats button{min-height:46px;border-radius:12px;border:1.5px solid var(--border);background:var(--panel-2);font-size:14px;font-weight:800;color:var(--dim)}
+.ecats button.on{border-color:var(--glow);color:var(--glow);background:rgba(94,234,212,.1)}
+.tog{margin-top:10px;width:100%;min-height:40px;border-radius:12px;border:1px solid var(--border);background:var(--panel-3);font-size:13px;font-weight:700}
+.ins{margin:0;padding:0;list-style:none}
+.ins li{font-size:13.5px;line-height:1.6;padding:7px 0;border-top:1px solid var(--soft);color:var(--dim)}
+.ins li:first-child{border-top:0}.ins b{color:var(--text)}
+.grp{border-top:1px solid var(--soft)}.grp:first-of-type{border-top:0}
+.grp summary{list-style:none;cursor:pointer;padding:10px 2px}
+.grp.sel>summary{background:rgba(94,234,212,.08);border-radius:10px;box-shadow:inset 3px 0 0 var(--glow);padding-left:8px}
+.grp summary::-webkit-details-marker{display:none}
+.g1{display:flex;align-items:center;gap:8px}
+.g1 .ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:var(--panel-3);font-size:15px;flex:none}
+.g1 .nm{flex:1;min-width:0;font-weight:700}.g1 .nm small{color:var(--faint);font-weight:600;margin-left:4px;font-size:11.5px}
+.g1 .am{font-weight:800;text-align:right}.g1 .am small{display:block;font-size:11px;font-weight:700}
+.up{color:var(--down)}.dn{color:var(--up)}
+.bar{height:5px;border-radius:9px;background:var(--panel-2);margin:6px 0 0 38px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--glow),#8ef3e3)}
+.br{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--dim);padding:5px 4px 5px 40px}
+.br b{color:var(--text)}
+.dh{display:flex;justify-content:space-between;font-size:12px;color:var(--faint);font-weight:700;padding:12px 2px 4px;border-bottom:1px solid var(--soft)}
+.row{display:flex;align-items:center;gap:10px;width:100%;padding:10px 2px;border:0;border-bottom:1px solid var(--soft);background:none;text-align:left}
+.row .ic{font-size:17px;width:24px;text-align:center}
+.row .nm{flex:1;min-width:0}.row .nm b{display:block;font-size:14.5px;font-weight:700;overflow-wrap:anywhere}
+.row .nm small{font-size:11.5px;color:var(--faint)}.row .am{font-weight:800;white-space:nowrap}
+.mb{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;padding:6px 0;font-size:13px;width:100%;border:0;background:none;text-align:left}
+.mb .tr{height:10px;border-radius:9px;background:var(--panel-2);overflow:hidden}.mb .tr i{display:block;height:100%;background:var(--glow)}
+.mb.cur .tr i{background:var(--amber)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:0;border-radius:14px;padding:15px;font-size:15px;font-weight:800;margin-bottom:8px;background:linear-gradient(90deg,#2BCDB8,#5EEAD4);color:#04211C;text-decoration:none}
+.btn small{font-weight:600;opacity:.75;font-size:12px}
+.btn.ghost{background:var(--panel-3);color:var(--text);border:1px solid var(--border)}
+.btn.line{background:none;border:1.5px solid var(--border);color:var(--dim)}
+.imp{border:1.5px dashed rgba(94,234,212,.5);border-radius:16px;padding:12px;margin-bottom:12px;background:rgba(94,234,212,.04)}
+.imp .btn{margin:0}
+.res{font-size:12.5px;color:var(--dim);margin-top:8px;line-height:1.6}.res b{color:var(--text)}
+.note{font-size:12.5px;color:var(--dim);line-height:1.7;background:var(--panel-2);border:1px solid var(--soft);border-radius:12px;padding:10px 12px;margin-bottom:10px}
+.note b{color:var(--text)}
+.srch{width:100%;min-height:44px;border-radius:12px;border:1.5px solid var(--border);background:var(--panel-2);padding:10px 12px;font-size:15px;outline:none;margin-bottom:4px}
+.empty{font-size:13px;color:var(--faint);text-align:center;padding:24px 8px;border:1px dashed var(--border);border-radius:14px;line-height:1.7}
+.fab{position:fixed;right:max(16px,calc(50% - 264px));bottom:calc(84px + env(safe-area-inset-bottom));z-index:8;width:56px;height:56px;border-radius:50%;border:0;background:linear-gradient(135deg,#2BCDB8,#5EEAD4);color:#04211C;font-size:28px;font-weight:800;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:7;display:grid;grid-template-columns:repeat(4,1fr);padding:6px 6px calc(6px + env(safe-area-inset-bottom));background:rgba(10,17,32,.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--border)}
+.tb{min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;background:none;color:var(--faint);border-radius:12px;font-size:11.5px;font-weight:700}
+.tb span{font-size:19px}.tb.on{color:var(--glow);background:rgba(94,234,212,.1)}
+.ov{position:fixed;inset:0;background:rgba(3,7,15,.6);display:none;align-items:flex-end;z-index:20}.ov.on{display:flex}
+.sheet{background:var(--panel);border:1px solid var(--border);border-bottom:0;width:100%;max-width:560px;margin:0 auto;border-radius:22px 22px 0 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));max-height:92vh;overflow-y:auto}
+.sheet h3{margin:0 0 12px;font-size:18px}
+.fld{display:flex;align-items:center;gap:10px;background:var(--panel-2);border:1.5px solid var(--soft);border-radius:14px;padding:4px 14px;margin-bottom:8px}
+.fld label{font-size:13.5px;font-weight:700;min-width:52px;color:var(--dim)}
+.fld input,.fld select{flex:1;min-width:0;border:0;background:none;outline:none;text-align:right;font-size:16px;font-weight:700;padding:11px 0}
+.fld select option{background:var(--panel)}
+.ck{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dim);margin:4px 2px 12px}
+.two{display:grid;grid-template-columns:1fr 2fr;gap:8px}.two .btn{margin:0}
+.del{color:var(--down)!important}
+.two2{display:grid;grid-template-columns:3fr 2fr;gap:8px}.two2 .btn{margin:0;padding:14px 8px}
+.fr{display:flex;align-items:center;gap:8px;padding:9px 2px;border-top:1px solid var(--soft);font-size:13px}.fr span{flex:1;min-width:0;color:var(--dim);overflow-wrap:anywhere}.fr b{color:var(--text)}.fr button{flex:none;min-height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--border);background:var(--panel-3);font-size:12.5px;font-weight:700}
+textarea{width:100%;min-height:150px;border-radius:12px;border:1.5px solid var(--border);background:var(--panel-2);font-family:'JetBrains Mono',monospace;font-size:12.5px;padding:10px;margin-bottom:8px;outline:none}
+.toast{position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#0F2A2A;color:var(--glow);border:1px solid rgba(94,234,212,.4);padding:10px 18px;border-radius:99px;font-size:13px;font-weight:700;opacity:0;transition:opacity .2s;pointer-events:none;z-index:30;max-width:92vw;text-align:center}
+.toast.on{opacity:1}
+.vfoot{text-align:center;font-size:11.5px;color:var(--faint);margin:10px 0}
+.ok{color:var(--up)}.wn{color:var(--amber)}.bd{color:var(--down)}
+.ban{border-radius:14px;padding:12px 14px;margin-bottom:12px;font-size:13.5px;line-height:1.65;border:1px solid var(--border);background:var(--panel-2)}
+.ban b{color:var(--text)}.ban.ok{border-color:rgba(56,217,140,.45);background:rgba(56,217,140,.07);color:var(--text)}.ban.wn{border-color:rgba(245,165,36,.5);background:rgba(245,165,36,.07);color:var(--text)}.ban.bd{border-color:rgba(240,71,90,.55);background:rgba(240,71,90,.08);color:var(--text)}
+.ban ul{margin:6px 0 0;padding-left:18px}.ban li{margin:3px 0}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:7px 2px;border-top:1px solid var(--soft);font-size:13.5px}.kv:first-of-type{border-top:0}
+.kv span{color:var(--dim);min-width:0;overflow-wrap:anywhere}.kv b{white-space:nowrap}.kv.tot{font-weight:800}.kv.tot span{color:var(--text)}
+.kv small{display:block;font-size:11px;color:var(--faint);font-weight:600;text-align:right}
+.chk{display:flex;gap:8px;align-items:flex-start;padding:7px 2px;border-top:1px solid var(--soft);font-size:13px;line-height:1.55}.chk:first-of-type{border-top:0}.chk i{font-style:normal;flex:none;width:18px;text-align:center;font-weight:800}.chk span{color:var(--dim)}.chk b{color:var(--text)}
+.mt{display:grid;grid-template-columns:1fr auto auto;gap:4px 10px;font-size:13px}
+.mt>div{padding:6px 0;border-top:1px solid var(--soft)}.mt .h{border-top:0;font-size:11.5px;color:var(--faint);font-weight:700}.mt .r{text-align:right;white-space:nowrap}
+.tb4{display:grid;grid-template-columns:1fr repeat(4,auto);gap:0 8px;font-size:12.5px;overflow-x:auto}.tb4>div{padding:6px 0;border-top:1px solid var(--soft);white-space:nowrap}.tb4 .h{border-top:0;color:var(--faint);font-weight:700;font-size:11.5px}.tb4 .r{text-align:right}
+.mrow{display:flex;align-items:center;gap:8px;width:100%;padding:11px 2px;border:0;border-top:1px solid var(--soft);background:none;text-align:left}
+.mrow .nm{flex:1;min-width:0}.mrow .nm b{display:block;font-size:14.5px}.mrow .nm small{font-size:11.5px;color:var(--faint)}.mrow .am{font-weight:800;text-align:right;white-space:nowrap}
+.pill{display:inline-block;font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:99px;margin-left:4px;vertical-align:1px}
+.pill.bd{background:rgba(240,71,90,.14)}.pill.wn{background:rgba(245,165,36,.14)}.pill.ok{background:rgba(56,217,140,.12)}
+.mini{min-height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--border);background:var(--panel-3);font-size:12.5px;font-weight:700}
+.itm{display:grid;grid-template-columns:1fr 112px 32px;gap:6px;margin-bottom:6px}.itm input{min-width:0;border:1.5px solid var(--soft);background:var(--panel-2);border-radius:10px;padding:9px 10px;font-size:14px;outline:none}.itm input.num{text-align:right}.itm button{border:1px solid var(--border);background:var(--panel-3);border-radius:10px;color:var(--down);font-weight:800}
+.hint{font-size:11.5px;color:var(--faint);margin:2px 2px 10px;line-height:1.6}
+details.raw summary{cursor:pointer;font-size:12px;color:var(--faint);padding:6px 0}details.raw pre{white-space:pre-wrap;font-size:11.5px;color:var(--dim);background:var(--panel-2);border-radius:10px;padding:8px;margin:0;overflow-wrap:anywhere}
+
+</style>
+</head>
+<body>
+<div class="top"><div class="top-in">
+  <div class="brand"><b>운송<span>비</span></b><a class="lnk" href="index.html">🏠 허브</a><a class="lnk" href="worklog.html">업무일지</a><button class="chip" id="syncChip" type="button" hidden></button><span class="ver" id="hdrVer"></span></div>
+  <div class="pnav" id="mNav"><button class="arw" id="mPrev" type="button" aria-label="이전 달">‹</button><div class="mid"><b id="mTitle">-</b></div><button class="arw" id="mNext" type="button" aria-label="다음 달">›</button></div>
+</div></div>
+
+<main>
+  <section class="page on" id="pSum">
+    <div id="cAi"></div>
+    <div class="card" id="cKpi"></div>
+    <div class="card" id="cItems"></div>
+    <div class="card" id="cChk"></div>
+    <div class="card" id="cMet"></div>
+    <div class="card" id="cWk"></div>
+  </section>
+  <section class="page" id="pTrend">
+    <div id="cTAi"></div>
+    <div class="card" id="cAvg"></div>
+    <div class="card" id="cBars"></div>
+  </section>
+  <section class="page" id="pList">
+    <div class="card">
+      <div class="ch"><h2>📥 명세서 올리기</h2><small>형식 무관 · 자동 인식</small></div>
+      <div class="imp">
+        <button class="btn" type="button" id="upBtn">📎 파일 선택 <small>엑셀 · CSV · 텍스트 (여러 개 가능)</small></button>
+        <input type="file" id="upFile" accept=".xlsx,.csv,.tsv,.txt,text/*" multiple hidden>
+      </div>
+      <textarea id="pasteTx" placeholder="명세서 내용을 여기에 붙여넣기 (표 복사 · 글자 인식 · 메신저 글 모두 가능)&#10;예)&#10;2026년 09월 운송비 명세서&#10;당월지급액 4,475,900&#10;계 5,154,800 부가세지급 515,480&#10;지급액 계 5,670,280 공제액 계 167,650 차인지급액 5,502,630"></textarea>
+      <button class="btn ghost" type="button" id="pasteBtn">📋 붙여넣은 내용 읽기</button>
+      <button class="btn line" type="button" id="newBtn">✍️ 직접 입력</button>
+      <div class="res" id="upRes"></div>
+      <div id="stage"></div>
+    </div>
+    <div class="card"><div class="ch"><h2>📋 저장된 명세서</h2><small id="listCnt"></small></div><div id="fList"></div></div>
+  </section>
+  <section class="page" id="pSet">
+    <div class="card">
+      <div class="ch"><h2>⚖️ 적정 운임 기준</h2></div>
+      <div class="fld"><label for="sRef">기준 일당</label><input id="sRef" class="num" inputmode="numeric" autocomplete="off" placeholder="비우면 다른 달 평균"></div>
+      <div class="fld"><label for="sTol">허용 오차</label><input id="sTol" class="num" inputmode="decimal" autocomplete="off" placeholder="3"></div>
+      <div class="hint">기본 운임 ÷ 운행일수 = 일당. 기준 일당을 넣으면 <b>일수 × 기준 일당</b>과 비교하고, 비우면 <b>다른 달 평균 일당</b>과 비교합니다. 허용 오차(%)보다 적으면 '적게 계산?' 으로 알려줍니다.</div>
+      <button class="btn" type="button" id="sSave">저장</button>
+    </div>
+    <div class="card">
+      <div class="ch"><h2>☁️ 동기화 · 평생 저장</h2></div>
+      <div class="note" id="syncState"></div>
+      <button class="btn ghost" type="button" id="syncNowBtn">↻ 지금 동기화</button>
+    </div>
+    <div class="card">
+      <div class="ch"><h2>💾 백업 · 내보내기</h2></div>
+      <button class="btn ghost" type="button" id="bkBtn">💾 운송비 백업 파일 저장</button>
+      <button class="btn ghost" type="button" id="rsBtn">📂 백업 파일로 복원 (합치기)</button>
+      <button class="btn line" type="button" id="csvBtn">📄 전체 명세서 CSV 내보내기</button>
+    </div>
+    <div class="card">
+      <div class="ch"><h2>📖 사용법</h2></div>
+      <div class="note">• <b>올리기</b>: 엑셀·CSV·글자 붙여넣기 모두 가능. 이름표(당월지급액·계·부가세·공제액 계·차인지급액 …)와 금액을 순서대로 짝지어 읽습니다. 한 장에 여러 달이 있어도, 한 줄이 한 달인 표여도 됩니다.<br>• <b>검산</b>: 지급 항목 합 = 계, 부가세 = 10%, 계 + 부가세 = 지급액 계, 공제 합 = 공제액 계, 지급 − 공제 = 차인, 거리 증가분, 누락 월·거리 끊김, 업무일지 근무일과 대조<br>• <b>적게 계산?</b>: 기준 일당(또는 다른 달 평균)보다 기본 운임이 허용 오차 이상 적으면 부족액을 계산해 알려줍니다.<br>• 사진은 글자를 못 읽으니 휴대폰의 글자 복사(문자 인식)를 붙여넣어 주세요. 읽은 값이 틀리면 ✏️ 수정으로 고칠 수 있습니다.<br>• 같은 달·차량을 다시 올리면 덮어씁니다. 원본 글자도 함께 평생 보관됩니다.</div>
+    </div>
+    <div class="vfoot" id="vFoot"></div>
+  </section>
+</main>
+
+<nav class="tabbar" id="tabbar">
+  <button class="tb on" type="button" data-p="pSum"><span>📊</span>요약</button>
+  <button class="tb" type="button" data-p="pTrend"><span>📈</span>추이</button>
+  <button class="tb" type="button" data-p="pList"><span>📋</span>명세서</button>
+  <button class="tb" type="button" data-p="pSet"><span>⚙️</span>설정</button>
+</nav>
+
+<div class="ov" id="eOv"><div class="sheet">
+  <h3 id="eTitle">명세서 수정</h3>
+  <div class="fld"><label for="eYm">연월</label><input id="eYm" type="month"></div>
+  <div class="fld"><label for="eVeh">차량</label><input id="eVeh" type="text" maxlength="20" autocomplete="off"></div>
+  <div class="fld"><label for="eDays">운행일수</label><input id="eDays" class="num" inputmode="numeric" autocomplete="off"></div>
+  <div class="fld"><label for="eKf">시작 km</label><input id="eKf" class="num" inputmode="numeric" autocomplete="off"></div>
+  <div class="fld"><label for="eKt">끝 km</label><input id="eKt" class="num" inputmode="numeric" autocomplete="off"></div>
+  <div class="ch" style="margin-top:10px"><h2>지급 항목</h2></div><div id="ePay"></div><button class="mini" type="button" id="eAddPay">＋ 지급 항목</button>
+  <div class="fld" style="margin-top:8px"><label for="eSub">계</label><input id="eSub" class="num" inputmode="numeric" autocomplete="off"></div>
+  <div class="fld"><label for="eVat">부가세</label><input id="eVat" class="num" inputmode="numeric" autocomplete="off"></div>
+  <div class="fld"><label for="eSup">발행금액</label><input id="eSup" class="num" inputmode="numeric" autocomplete="off"></div>
+  <div class="fld"><label for="ePt">지급액 계</label><input id="ePt" class="num" inputmode="numeric" autocomplete="off"></div>
+  <div class="ch" style="margin-top:10px"><h2>공제 항목</h2></div><div id="eDed"></div><button class="mini" type="button" id="eAddDed">＋ 공제 항목</button>
+  <div class="fld" style="margin-top:8px"><label for="eDt">공제액 계</label><input id="eDt" class="num" inputmode="numeric" autocomplete="off"></div>
+  <div class="fld"><label for="eNet">차인지급액</label><input id="eNet" class="num" inputmode="numeric" autocomplete="off"></div>
+  <div class="hint">비워 두면 '표시 없음'으로 저장되고 계산값으로 대신 검산합니다.</div>
+  <div class="two"><button class="btn line del" type="button" id="eDel">삭제</button><button class="btn" type="button" id="eSave">저장</button></div>
+  <button class="btn line" type="button" id="eCancel" style="margin-top:8px">닫기</button>
+</div></div>
+<input type="file" id="rsFile" accept=".json,application/json" hidden>
+<div class="toast" id="toast"></div>
+
+<script src="mod-base.js?v=1.16-2026-10-29"></script>
+<script src="mod-sync.js?v=1.16-2026-10-29"></script>
+<script src="mod-xlsxr.js?v=1.16-2026-10-29"></script>
+<script src="mod-fare.js?v=1.16-2026-10-29"></script>
+<script src="mod-holiday.js?v=1.16-2026-10-29"></script>
+<script src="mod-dealer.js?v=1.16-2026-10-29"></script>
+<script src="mod-stats.js?v=1.16-2026-10-29"></script>
+<script>
+const {$,bus,escH,fmt,keyOf,metaOf,pad,rj,toast}=M.base;
+const sync=M.sync;
+const {xlsxRows}=M.xlsxr;
+const {F,FARE_KEY,FARE_KIND_NAME,FARE_META,fareAll,fareAnalyze,fareCheck,fareDel,fareDerive,fareKind,fareLink,fareParse,farePut,fareReadFile,fareReplace,fareSaveSettings,fareSettings,frHas,frNum}=M.fare;
+const {normalize,statsFor}=M.stats;
+/* ================= 버전 정보 (하드코딩) =================
+   V1.16 (2026-10-29): 운송비 명세서 앱 추가(fare.html): 엑셀·CSV·붙여넣기 자동 인식·검산·적정 운임·평균·추세·업무일지 대조, 허브 타일, mod-xlsxr 분리
+   구조: 읽기·검산·분석은 독립 모듈(mod-fare.js), 엑셀 읽기는 mod-xlsxr.js, 이 파일은 화면만 담당 */
+const APP_NAME    = '운송비';
+const APP_VERSION = '1.16';
+const BUILD_DATE  = '2026-10-29';
+sync.configure({version:APP_VERSION});
+fareLink(sync);
+
+const sg=n=>(n>0?'+':n<0?'−':'±')+fmt(Math.abs(n));
+const pc=n=>n==null?'-':(n*100).toFixed(1)+'%';
+const won=n=>n==null?'-':fmt(n)+'원';
+const ymT=y=>y?`${y.slice(0,4)}년 ${+y.slice(5)}월`:'연월 없음';
+const ICON={ok:'✔',warn:'⚠',bad:'✖'}, CLS={ok:'ok',warn:'wn',bad:'bd'};
+let cur='', A=null, staged=[], editing=null;
+function analyze(){ const st=fareSettings(); A=fareAnalyze(fareAll(),{refDaily:st.refDaily,tol:(+st.tol||0)/100}); if(!A.rows.some(r=>r.s.ym===cur)) cur=A.rows.length?A.rows[A.rows.length-1].s.ym:''; return A; }
+const rowOf=ym=>A.rows.find(r=>r.s.ym===ym);
+
+/* ---- 업무일지 대조 (같은 기기의 업무일지 기록을 읽기만 함) ---- */
+function workCross(s){
+  const data=normalize(rj('worklog.data.v2',{})); if(!s.ym||!Object.keys(data).length) return null;
+  const [y,m]=s.ym.split('-').map(Number), cands=[];
+  const pe=statsFor(data,{y,m:m-1}); cands.push({lab:`${m-1<1?12:m-1}/25~${m}/24`,days:pe.work,dist:pe.odo.dist,rkm:pe.rkm});
+  let cw=0; const dim=new Date(y,m,0).getDate(); for(let d=1;d<=dim;d++){ const r=data[`${y}-${pad(m)}-${pad(d)}`]; if(r&&['1','2','3'].includes(r.s)) cw++; }
+  cands.push({lab:`${m}/1~${m}/${dim}`,days:cw,dist:null,rkm:null});
+  if(!cands.some(c=>c.days)) return {none:true};
+  cands.sort((a,b)=>Math.abs(a.days-(s.days||0))-Math.abs(b.days-(s.days||0)));
+  return cands[0];
+}
+/* ---- 요약 ---- */
+function aiLines(r){
+  const L=[]; const bad=r.issues.filter(x=>x.lv==='bad'), wn=r.issues.filter(x=>x.lv==='warn');
+  bad.forEach(x=>L.push({lv:'bad',t:x.t+': '+x.msg}));
+  r.flags.filter(f=>f.t!=='검산 불일치').forEach(f=>L.push({lv:f.lv==='ok'?'ok':f.lv,t:f.t+': '+f.msg}));
+  wn.forEach(x=>L.push({lv:'warn',t:x.t+': '+x.msg}));
+  const wk=workCross(r.s);
+  if(wk&&!wk.none&&r.s.days!=null&&wk.days!==r.s.days) L.push({lv:wk.days<r.s.days?'warn':'bad',t:`운행일수 ${r.s.days}일 ≠ 업무일지 근무 ${wk.days}일(${wk.lab})`+(wk.days>r.s.days?' → 운송비가 적게 잡혔을 수 있음':' → 업무일지 기록이 빠졌을 수 있음')});
+  return L;
+}
+function renderSum(){
+  const r=rowOf(cur);
+  if(!r){ ['cAi','cItems','cChk','cMet','cWk'].forEach(i=>$(i).innerHTML=''); $('mTitle').textContent='명세서 없음'; $('cKpi').innerHTML='<div class="empty">아직 명세서가 없습니다<br><button class="mini" type="button" data-go="pList" style="margin-top:10px">📥 명세서 올리기</button></div>'; return; }
+  const {s,d}=r, i=A.rows.indexOf(r);
+  $('mTitle').textContent=ymT(s.ym);
+  const L=aiLines(r), nb=L.filter(x=>x.lv==='bad').length, nw=L.filter(x=>x.lv==='warn').length;
+  const cls=nb?'bd':nw?'wn':'ok';
+  $('cAi').innerHTML=`<div class="ban ${cls}"><b>${nb?'✖ 확인 필요 '+nb+'건':nw?'⚠ 참고 '+nw+'건':'✔ 이상 없음'}</b>${nb||nw?'':' — 모든 검산이 맞고, 평소와 비슷합니다.'}${L.length?'<ul>'+L.map(x=>`<li class="${CLS[x.lv]||''}"><span style="color:var(--text)">${escH(x.t)}</span></li>`).join('')+'</ul>':''}</div>`;
+  const pv=A.rows[i-1];
+  $('cKpi').innerHTML=`<div class="ch"><h2>차인지급액</h2><small>${escH([s.name,s.veh,s.work].filter(Boolean).join(' · '))}</small></div>
+    <div class="big num">${fmt(d.net)}<small>원</small></div>
+    ${pv?`<span class="dl ${d.net>pv.d.net?'dn':d.net<pv.d.net?'up':'eq'}">전월 ${sg(d.net-pv.d.net)}원</span>`:''}
+    <div class="split"><div><span>지급액 계</span><b class="num">${fmt(d.payTotal)}</b></div><div><span>공제액 계</span><b class="num">${fmt(d.dedTotal)}</b></div></div>
+    <div class="split"><div><span>운행일수</span><b class="num">${s.days==null?'-':s.days+'일'}</b></div><div><span>운행거리</span><b class="num">${d.km==null?'-':fmt(d.km)+'km'}</b></div></div>`;
+  const kv=(n,v,sub,c)=>`<div class="kv${c||''}"><span>${escH(n)}</span><b class="num">${v}${sub?`<small>${sub}</small>`:''}</b></div>`;
+  $('cItems').innerHTML=`<div class="ch"><h2>명세 내역</h2><small>표시된 값 그대로</small></div>`
+    +s.pay.map(p=>kv(p.n,fmt(p.v),FARE_KIND_NAME[p.k]||'')).join('')
+    +kv('계 (공급가액)',s.sub==null?'-':fmt(s.sub),s.sub==null?'표시 없음 → '+fmt(d.sub):'',' tot')+kv('부가세',s.vat==null?'-':fmt(s.vat),s.vat==null?'표시 없음 → '+fmt(d.vat):'')+(s.supply!=null?kv('세금계산서 발행금액',fmt(s.supply)):'')+kv('지급액 계',s.payTotal==null?'-':fmt(s.payTotal),s.payTotal==null?'표시 없음 → '+fmt(d.payTotal):'',' tot')
+    +(s.ded.length?s.ded.map(p=>kv(p.n,'− '+fmt(p.v))).join(''):'')+kv('공제액 계',s.dedTotal==null?'-':'− '+fmt(s.dedTotal),s.dedTotal==null?'표시 없음 → '+fmt(d.dedTotal):'',' tot')+kv('차인지급액',s.net==null?'-':fmt(s.net),s.net==null?'표시 없음 → '+fmt(d.net):'',' tot')
+    +(s.kmFrom!=null?kv('운행거리',fmt(s.kmFrom)+' → '+fmt(s.kmTo)+'km',d.km!=null?'+'+fmt(d.km)+'km':''):'')
+    +(s.raw?`<details class="raw"><summary>원본 글자 보기</summary><pre>${escH(s.raw)}</pre></details>`:'');
+  $('cChk').innerHTML=`<div class="ch"><h2>🔍 검산</h2><small>${r.issues.filter(x=>x.lv==='ok').length}/${r.issues.length} 일치</small></div>`+r.issues.map(x=>`<div class="chk"><i class="${CLS[x.lv]}">${ICON[x.lv]}</i><span><b>${escH(x.t)}</b> ${escH(x.msg)}</span></div>`).join('');
+  const MET=[['perDay','공급가액 일평균','원',fmt],['basePerDay','기본 운임 일평균','원',fmt],['netPerDay','실수령 일평균','원',fmt],['perKm','km당 운임','원',v=>fmt(v)],['fuelPerKm','km당 유류변동','원',v=>fmt(v)],['dedRate','공제율','',pc]];
+  $('cMet').innerHTML=`<div class="ch"><h2>📐 이번 달 지표</h2><small>${A.rows.length}개월 평균과 비교</small></div><div class="mt"><div class="h">지표</div><div class="h r">이번 달</div><div class="h r">평균</div>`
+    +MET.map(([k,n,u,f])=>{ const v=d[k], a=A.avg[k]&&A.avg[k].all.avg; return `<div>${n}</div><div class="r num">${v==null?'-':f(v)+u}</div><div class="r num" style="color:var(--dim)">${a==null?'-':f(a)+u}</div>`; }).join('')+'</div>'
+    +(r.refBasis&&r.expBase?`<div class="note" style="margin:10px 0 0">⚖️ <b>적정 운임</b> (${escH(r.refBasis.label)} ${fmt(r.refBasis.daily)}원 × ${s.days}일) = <b>${fmt(r.expBase)}원</b> · 실제 기본 운임 <b>${fmt(d.base)}원</b> → <b class="${r.gapPct<-fareSettings().tol/100?'bd':'ok'}">${sg(r.gap)}원 (${(r.gapPct*100).toFixed(1)}%)</b></div>`:'<div class="hint" style="margin-top:8px">다른 달 명세서를 더 올리거나 설정에서 기준 일당을 넣으면 적정 운임을 비교합니다.</div>');
+  const wk=workCross(s);
+  $('cWk').innerHTML=!wk?'':`<div class="ch"><h2>📅 업무일지 대조</h2><small>이 기기의 업무일지</small></div>`+(wk.none?'<div class="hint">이 기간의 업무일지 근무 기록이 없습니다.</div>':`<div class="kv"><span>운행일수 (명세서)</span><b class="num">${s.days==null?'-':s.days+'일'}</b></div><div class="kv"><span>근무일 (업무일지 · ${wk.lab})</span><b class="num ${s.days!=null&&wk.days!==s.days?'wn':'ok'}">${wk.days}일</b></div>`+(wk.dist!=null&&d.km!=null?`<div class="kv"><span>주행거리 증가 (업무일지)</span><b class="num ${wk.dist===d.km?'ok':'wn'}">${fmt(wk.dist)}km</b></div>`:'')+(wk.rkm?`<div class="kv"><span>회전 경로 합계 (업무일지)</span><b class="num">${fmt(wk.rkm)}km</b></div>`:''));
+}
+/* ---- 추이 ---- */
+function renderTrend(){
+  const R=A.rows;
+  if(!R.length){ ['cTAi','cAvg','cBars'].forEach(i=>$(i).innerHTML=''); $('cAvg').innerHTML='<div class="empty">명세서를 올리면 평균과 추이가 자동 계산됩니다</div>'; return; }
+  const gl=[]; if(A.gaps.length) gl.push({lv:'bad',t:'누락된 달: '+A.gaps.map(ymT).join(', ')+' → 명세서를 올려 주세요'});
+  R.forEach(r=>r.flags.forEach(f=>{ if(f.lv!=='ok') gl.push({lv:f.lv,t:ymT(r.s.ym)+' '+f.t+': '+f.msg}); }));
+  $('cTAi').innerHTML=`<div class="ban ${gl.some(x=>x.lv==='bad')?'bd':gl.length?'wn':'ok'}"><b>${gl.length?'확인할 내용 '+gl.length+'건':'✔ 누락·이상 없음'}</b>${gl.length?'<ul>'+gl.map(x=>`<li>${escH(x.t)}</li>`).join('')+'</ul>':` — ${R.length}개월 모두 검산이 맞고 빠진 달이 없습니다.`}</div>`;
+  const rows=[['차인지급액','net',fmt],['공급가액(계)','sub',fmt],['공급가액 일평균','perDay',fmt],['기본 운임 일평균','basePerDay',fmt],['실수령 일평균','netPerDay',fmt],['km당 운임','perKm',fmt],['유류변동','fuel',fmt],['운행일수','days',v=>v.toFixed(1)],['운행거리 km','km',fmt],['공제율','dedRate',pc]];
+  $('cAvg').innerHTML=`<div class="ch"><h2>📊 평균 · 최소 · 최대</h2><small>${R.length}개월</small></div><div class="tb4"><div class="h">항목</div><div class="h r">전체평균</div><div class="h r">최근3개월</div><div class="h r">최소</div><div class="h r">최대</div>`
+    +rows.map(([n,k,f])=>{ const a=A.avg[k]; const c=v=>v==null?'-':f(v); return `<div>${n}</div><div class="r num">${c(a.all.avg)}</div><div class="r num">${c(a.r3.avg)}</div><div class="r num" style="color:var(--dim)">${c(a.all.min)}</div><div class="r num" style="color:var(--dim)">${c(a.all.max)}</div>`; }).join('')+'</div>'
+    +`<div class="kv" style="margin-top:8px"><span>누적 (일수 ${A.tot.days}일 · ${fmt(A.tot.km)}km)</span><b class="num">${fmt(A.tot.net)}원</b></div>`;
+  const mx=Math.max(...R.map(r=>r.d.net),1);
+  $('cBars').innerHTML=`<div class="ch"><h2>📈 월별 차인지급액</h2><small>누르면 요약</small></div>`+R.slice().reverse().map(r=>{ const bad=r.flags.some(f=>f.lv==='bad'), wn=r.flags.some(f=>f.lv==='warn'); return `<button class="mb" type="button" data-ym="${r.s.ym}" style="grid-template-columns:54px 1fr auto"><span>${+r.s.ym.slice(5)}월${bad?'<i class="pill bd">!</i>':wn?'<i class="pill wn">?</i>':''}</span><span class="tr"><i style="width:${Math.max(3,r.d.net/mx*100)}%"></i></span><b class="num">${fmt(r.d.net)}</b></button>`; }).join('');
+}
+/* ---- 명세서 목록 · 올리기 ---- */
+function stCard(s,ix){
+  const d=fareDerive(s), iss=fareCheck(s), nb=iss.filter(x=>x.lv==='bad').length, nw=iss.filter(x=>x.lv==='warn').length;
+  return `<div class="kv"><span><b>${ymT(s.ym)}</b>${nb?'<i class="pill bd">불일치 '+nb+'</i>':nw?'<i class="pill wn">확인 '+nw+'</i>':'<i class="pill ok">일치</i>'}<br><small style="color:var(--faint)">${[s.days!=null?s.days+'일':'',d.km!=null?fmt(d.km)+'km':'',s.src].filter(Boolean).map(escH).join(' · ')}</small></span><b class="num">${fmt(d.net)}<small>지급 ${fmt(d.payTotal)}</small></b></div>`
+    +(iss.filter(x=>x.lv!=='ok').map(x=>`<div class="chk"><i class="${CLS[x.lv]}">${ICON[x.lv]}</i><span><b>${escH(x.t)}</b> ${escH(x.msg)}</span></div>`).join(''))
+    +(ix!=null?`<div class="fr"><span>월 <input class="srch" style="margin:0;min-height:36px;width:150px" type="month" data-sm="${ix}" value="${s.ym}"></span></div>`:'');
+}
+function renderStage(){
+  $('stage').innerHTML=staged.length?`<div class="ch" style="margin-top:12px"><h2>읽은 결과 ${staged.length}건</h2><small>저장 전 확인</small></div>`+staged.map((s,i)=>`<div style="border:1px solid var(--border);border-radius:14px;padding:6px 10px;margin-bottom:8px">${stCard(s,s.ym?null:i)}</div>`).join('')+`<div class="two2"><button class="btn" type="button" id="stSave">✅ 모두 저장</button><button class="btn line" type="button" id="stCancel">취소</button></div>`:'';
+}
+function renderList(){
+  const L=fareAll().sort((a,b)=>a.ym<b.ym?1:-1);
+  $('listCnt').textContent=L.length+'건 · 평생 보관';
+  $('fList').innerHTML=L.length?L.map(s=>{ const d=fareDerive(s); return `<div class="mrow"><span class="nm"><b>${ymT(s.ym)}</b><small>차인 ${fmt(d.net)}원${s.days!=null?' · '+s.days+'일':''}${s.src?' · '+escH(s.src):''}</small></span><button class="mini" type="button" data-view="${s.ym}">보기</button><button class="mini" type="button" data-edit="${escH(s.id)}">✏️</button></div>`; }).join(''):'<div class="empty">저장된 명세서가 없습니다</div>';
+}
+function renderSync(state){
+  const on=!!(sync.isOn()), m=metaOf(FARE_META), chip=$('syncChip'), st=$('syncState'), n=fareAll().length;
+  chip.hidden=!on; chip.className='chip';
+  if(!on){ st.innerHTML=`동기화 꺼짐 · 이 기기에만 저장 중 (${n}건).<br><a href="worklog.html#more" style="color:var(--glow)">업무일지 → 더보기</a>에서 동기화를 연결하면 운송비도 자동으로 함께 저장됩니다.`; return; }
+  if(state==='busy'){ chip.textContent='☁ 동기화 중'; st.textContent='☁ 동기화 중…'; return; }
+  if(sync.err()){ chip.classList.add('err'); chip.textContent='☁ 확인 필요'; st.textContent='⚠ '+sync.err()+' · 기록은 이 기기에 저장돼 있고 연결되면 올라갑니다'; return; }
+  chip.classList.add('ok'); chip.textContent='☁ 동기화됨';
+  st.innerHTML=`✅ 동기화 켜짐 · 명세서 <b>${n}건</b> 평생 보관 · 마지막 ${m.last?new Date(m.last).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'-'}`;
+}
+function renderAll(){ analyze(); renderSum(); renderTrend(); renderList(); renderStage(); renderSync(); const st=fareSettings(); $('sRef').value=st.refDaily||''; $('sTol').value=st.tol; $('mPrev').disabled=!A.rows.length||A.rows[0].s.ym===cur; $('mNext').disabled=!A.rows.length||A.rows[A.rows.length-1].s.ym===cur; }
+function uiSync(state){ renderSync(state); }
+function uiChanged(){ renderAll(); }
+bus.on('sync:state',uiSync); bus.on('data:changed',uiChanged); bus.on('fare:changed',uiChanged);
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id===id));
+  document.querySelectorAll('.tb').forEach(b=>b.classList.toggle('on',b.dataset.p===id));
+  $('mNav').hidden=id!=='pSum'; window.scrollTo(0,0);
+}
+document.querySelectorAll('.tb').forEach(b=>b.onclick=()=>showPage(b.dataset.p));
+document.addEventListener('click',e=>{
+  const g=e.target.closest('[data-go]'); if(g){ showPage(g.dataset.go); return; }
+  const y=e.target.closest('[data-ym]'); if(y){ cur=y.dataset.ym; renderAll(); showPage('pSum'); return; }
+  const v=e.target.closest('[data-view]'); if(v){ cur=v.dataset.view; renderAll(); showPage('pSum'); return; }
+  const ed=e.target.closest('[data-edit]'); if(ed){ openEdit(ed.dataset.edit); }
+});
+$('mPrev').onclick=()=>{ const i=A.rows.findIndex(r=>r.s.ym===cur); if(i>0){ cur=A.rows[i-1].s.ym; renderAll(); } };
+$('mNext').onclick=()=>{ const i=A.rows.findIndex(r=>r.s.ym===cur); if(i>=0&&i<A.rows.length-1){ cur=A.rows[i+1].s.ym; renderAll(); } };
+
+/* ---- 올리기: 파일 · 붙여넣기 → 미리보기 → 저장 ---- */
+function stageIn(list,label){
+  list=list.filter(s=>frHas(s));
+  if(!list.length){ $('upRes').innerHTML='⚠ 읽을 수 있는 금액을 찾지 못했습니다. 이름표(당월지급액·계·부가세·공제액 계·차인지급액)와 금액이 있는지 확인해 주세요. 못 읽는 형식이면 ✍️ 직접 입력을 쓰세요.'; return; }
+  staged=staged.concat(list); $('upRes').innerHTML=`${escH(label)} → <b>${list.length}건</b> 읽음 · 아래에서 확인하고 저장하세요`; renderStage();
+}
+$('upBtn').onclick=()=>$('upFile').click();
+$('upFile').onchange=async e=>{
+  const fs=[...e.target.files]; e.target.value='';
+  for(const f of fs){ try{ stageIn(await fareReadFile(f,xlsxRows),f.name); }catch(x){ $('upRes').innerHTML='⚠ '+escH(f.name)+': '+escH(x.message); } }
+};
+$('pasteBtn').onclick=()=>{ const t=$('pasteTx').value; if(!t.trim()){ toast('붙여넣을 내용이 없습니다'); return; } let l=fareParse(t,'붙여넣기'); if(!l.length){ const rows=t.split('\n').map(x=>x.split('\t').map(c=>{ const n=frNum(c); return n!=null?n:c.trim(); })); l=fareParse([rows],'붙여넣기'); } stageIn(l,'붙여넣기'); $('pasteTx').value=''; };
+document.addEventListener('input',e=>{ const i=e.target.dataset&&e.target.dataset.sm; if(i!=null&&i!==''&&e.target.type==='month'&&staged[+i]){ staged[+i].ym=e.target.value; staged[+i].id=e.target.value+'|'+(staged[+i].veh||''); if(/^\d{4}-\d{2}$/.test(e.target.value)) renderStage(); } });
+document.addEventListener('click',e=>{
+  if(e.target.id==='stCancel'){ staged=[]; renderStage(); $('upRes').textContent=''; }
+  if(e.target.id==='stSave'){
+    const ok=staged.filter(s=>/^\d{4}-\d{2}$/.test(s.ym||'')), no=staged.length-ok.length;
+    if(!ok.length){ toast('연월을 먼저 골라 주세요'); return; }
+    const r=farePut(ok); staged=staged.filter(s=>!/^\d{4}-\d{2}$/.test(s.ym||'')); cur=ok[ok.length-1].ym;
+    toast(`✅ 저장 ${r.add}건${r.upd?' · 덮어씀 '+r.upd+'건':''}${no?' · 연월 없는 '+no+'건 남음':''}`); $('upRes').textContent=''; sync.schedule(800); renderAll();
+  }
+});
+
+/* ---- 수정 · 직접 입력 ---- */
+const nv=id=>{ const t=$(id).value.trim(); if(t==='') return null; const n=frNum(t); return n; };
+const setv=(id,v)=>{ $(id).value=v==null?'':v; };
+const itmRow=(a,i,k)=>`<div class="itm"><input type="text" data-k="${k}" data-i="${i}" data-f="n" value="${escH(a.n)}" placeholder="이름" autocomplete="off"><input class="num" inputmode="numeric" data-k="${k}" data-i="${i}" data-f="v" value="${a.v==null?'':a.v}" autocomplete="off"><button type="button" data-rm="${k}:${i}" aria-label="삭제">×</button></div>`;
+let ed=null;
+function drawItems(){ $('ePay').innerHTML=ed.pay.map((a,i)=>itmRow(a,i,'pay')).join(''); $('eDed').innerHTML=ed.ded.map((a,i)=>itmRow(a,i,'ded')).join(''); }
+function syncItems(){ document.querySelectorAll('#eOv .itm input').forEach(el=>{ const a=ed[el.dataset.k][+el.dataset.i]; if(!a) return; if(el.dataset.f==='n') a.n=el.value; else{ const n=frNum(el.value); a.v=n; } }); }
+function openEdit(id){
+  const s=id?F[id]:null;
+  ed=s?JSON.parse(JSON.stringify(s)):{ym:'',veh:'',days:null,kmFrom:null,kmTo:null,pay:[{n:'당월지급액',v:null,k:'base'},{n:'하이패스비용 지원',v:null,k:'hipass'},{n:'직계약 수당',v:null,k:'allow'},{n:'운행거리 유류변동 금액',v:null,k:'fuel'}],ded:[{n:'관리비 공제',v:null},{n:'화물공제 조합비 공제',v:null}],sub:null,vat:null,supply:null,payTotal:null,dedTotal:null,net:null,src:'직접 입력'};
+  editing=s?s.id:'';
+  $('eTitle').textContent=s?ymT(s.ym)+' 수정':'명세서 직접 입력';
+  setv('eYm',ed.ym); setv('eVeh',ed.veh); setv('eDays',ed.days); setv('eKf',ed.kmFrom); setv('eKt',ed.kmTo);
+  setv('eSub',ed.sub); setv('eVat',ed.vat); setv('eSup',ed.supply); setv('ePt',ed.payTotal); setv('eDt',ed.dedTotal); setv('eNet',ed.net);
+  $('eDel').hidden=!s; drawItems(); $('eOv').classList.add('on');
+}
+$('newBtn').onclick=()=>openEdit('');
+$('eAddPay').onclick=()=>{ syncItems(); ed.pay.push({n:'',v:null,k:'etc'}); drawItems(); };
+$('eAddDed').onclick=()=>{ syncItems(); ed.ded.push({n:'',v:null}); drawItems(); };
+$('eOv').addEventListener('click',e=>{ const r=e.target.dataset&&e.target.dataset.rm; if(r){ syncItems(); const [k,i]=r.split(':'); ed[k].splice(+i,1); drawItems(); } if(e.target===$('eOv')) $('eOv').classList.remove('on'); });
+$('eCancel').onclick=()=>$('eOv').classList.remove('on');
+$('eSave').onclick=()=>{
+  syncItems();
+  const ym=$('eYm').value; if(!/^\d{4}-\d{2}$/.test(ym)){ toast('연월을 골라 주세요'); return; }
+  const s=Object.assign({},ed,{ym,veh:$('eVeh').value.trim(),days:nv('eDays'),kmFrom:nv('eKf'),kmTo:nv('eKt'),sub:nv('eSub'),vat:nv('eVat'),supply:nv('eSup'),payTotal:nv('ePt'),dedTotal:nv('eDt'),net:nv('eNet')});
+  s.pay=ed.pay.filter(a=>a.n.trim()&&a.v!=null).map(a=>({n:a.n.trim(),v:a.v,k:fareKind(a.n)})); s.ded=ed.ded.filter(a=>a.n.trim()&&a.v!=null).map(a=>({n:a.n.trim(),v:a.v}));
+  const oldId=editing, newId=ym+'|'+s.veh;
+  if(oldId&&oldId!==newId) fareDel([oldId]);
+  farePut([s]); cur=ym; $('eOv').classList.remove('on'); toast('✅ 저장했습니다'); sync.schedule(800); renderAll();
+};
+$('eDel').onclick=()=>{ if(!editing) return; if(!confirm('이 명세서를 지울까요? (동기화 기기에서도 지워집니다)')) return; fareDel([editing]); $('eOv').classList.remove('on'); toast('삭제했습니다'); sync.schedule(800); renderAll(); };
+
+/* ---- 설정 · 백업 ---- */
+$('sSave').onclick=()=>{ const r=nv('sRef'), t=nv('sTol'); fareSaveSettings({refDaily:r||0,tol:t==null?3:t}); toast('저장했습니다'); renderAll(); };
+$('syncNowBtn').onclick=()=>sync.now();
+$('syncChip').onclick=()=>showPage('pSet');
+const stamp=()=>keyOf(new Date()).replace(/-/g,'');
+function download(name,text,type){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000); }
+$('bkBtn').onclick=()=>download(`${APP_NAME}_백업_V${APP_VERSION}_${stamp()}.json`,JSON.stringify({app:APP_NAME,version:APP_VERSION,exportedAt:new Date().toISOString(),data:F}),'application/json');
+$('rsBtn').onclick=()=>$('rsFile').click();
+$('rsFile').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; if(!f) return; try{ const j=JSON.parse(await f.text()); const d=j.data||j; const l=Object.values(d).filter(x=>x&&x.ym&&Array.isArray(x.pay)); if(!l.length) throw new Error('운송비 백업 파일이 아닙니다'); const r=farePut(l); toast(`복원 ${r.add}건 추가 · ${r.upd}건 덮어씀`); sync.schedule(800); renderAll(); }catch(x){ toast('⚠ '+x.message); } };
+$('csvBtn').onclick=()=>{ const esc=v=>/[",\n]/.test(String(v))?'"'+String(v).replace(/"/g,'""')+'"':String(v);
+  const H=['연월','차량','운행일수','시작km','끝km','운행km','지급 항목','계','부가세','지급액 계','공제 항목','공제액 계','차인지급액','공급가액 일평균','기본운임 일평균','실수령 일평균','km당 운임','출처'];
+  const L=fareAll().sort((a,b)=>a.ym<b.ym?-1:1).map(s=>{ const d=fareDerive(s); return [s.ym,s.veh,s.days==null?'':s.days,s.kmFrom==null?'':s.kmFrom,s.kmTo==null?'':s.kmTo,d.km==null?'':d.km,s.pay.map(p=>p.n+' '+p.v).join(' / '),d.sub,d.vat,d.payTotal,s.ded.map(p=>p.n+' '+p.v).join(' / '),d.dedTotal,d.net,Math.round(d.perDay||0),Math.round(d.basePerDay||0),Math.round(d.netPerDay||0),Math.round(d.perKm||0),s.src||'']; });
+  download(`${APP_NAME}_명세서_V${APP_VERSION}_${stamp()}.csv`,'\ufeff'+[H,...L].map(r=>r.map(esc).join(',')).join('\r\n'),'text/csv'); };
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden){ fareReplace(rj(FARE_KEY,F)); renderAll(); sync.schedule(200); checkUpdate(true); } });
+window.addEventListener('online',()=>sync.schedule(500));
+setInterval(()=>{ if(!document.hidden&&!$('eOv').classList.contains('on')) sync.schedule(100); },90000);
+
+/* ---- 자동 업데이트 (이 파일의 APP_VERSION·BUILD_DATE가 바뀌면 다시 열기) ---- */
+let lastChk=0;
+async function checkUpdate(auto){
+  if(!/^https?:$/.test(location.protocol)||Date.now()-lastChk<15000) return; lastChk=Date.now();
+  try{
+    const h=await (await fetch('fare.html?check='+Date.now(),{cache:'no-store'})).text();
+    const v=(h.match(/APP_VERSION\s*=\s*'([^']+)'/)||[])[1], d=(h.match(/BUILD_DATE\s*=\s*'([^']+)'/)||[])[1];
+    const mt=(h.match(/mod-base\.js\?v=([\w.\-]+)/)||[])[1], cm=(document.querySelector('script[src^="mod-base.js"]')||{}).src||'';
+    if(!v||(v===APP_VERSION&&d===BUILD_DATE&&(!mt||cm.includes(mt)))) return;
+    let tried=null; try{ tried=sessionStorage.getItem('fare.updTried'); }catch(e){}
+    if(auto&&!$('eOv').classList.contains('on')&&tried!==v+d+(mt||'')){ try{ sessionStorage.setItem('fare.updTried',v+d+(mt||'')); }catch(e){} location.reload(); }
+  }catch(e){}
+}
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+/* ---- 시작 ---- */
+$('hdrVer').textContent=`V${APP_VERSION}`;
+$('vFoot').textContent=`시스템 버전: V${APP_VERSION} (${BUILD_DATE})`;
+renderAll();
+sync.schedule(400);
+window.addEventListener('load',()=>setTimeout(()=>checkUpdate(true),1500));
+</script>
+</body>
+</html>

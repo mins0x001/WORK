@@ -1,4 +1,4 @@
-# 업무 앱 구조 (V1.15 · 2026-10-29)
+# 업무 앱 구조 (V1.16 · 2026-10-29)
 
 화면 3개 + 독립 모듈 8개. 화면은 UI만, 계산·저장·동기화는 모듈이 담당합니다.
 
@@ -7,8 +7,11 @@
 | index.html | 업무허브 (카드 올리기·이동·요약) | base, card, sync, ledger |
 | worklog.html | 업무일지 (대리점 조회·회전 저장·달력·집계 화면) | base, sync, holiday, dealer, stats, export |
 | expenses.html | 가계부 (분석·분류·고정지출) | base, card, sync, ledger |
+| fare.html | 운송비 명세서 (검산·적정 운임·평균·추세·업무일지 대조) | base, sync, xlsxr, fare, holiday, dealer, stats |
 | mod-base.js | 공통 도구, 저장소(ls), 알림 버스(bus), 엑셀 쓰기(XL) | 없음 |
-| mod-card.js | 카드 엑셀·CSV·붙여넣기 읽기, 취소 상계, 업무 비용 분류 | base |
+| mod-xlsxr.js | 엑셀(.xlsx) 읽기 (ZIP·XML, 외부 라이브러리 없음) | - |
+| mod-card.js | 카드 엑셀·CSV·붙여넣기 읽기, 취소 상계, 업무 비용 분류 | base, xlsxr |
+| mod-fare.js | 운송비 명세서 읽기(엑셀·CSV·글자·가로표)·검산·평균·적정 운임 분석·저장(fare.json 동기화) | base, xlsxr |
 | mod-sync.js | GitHub 비공개 Gist 동기화 엔진 (문서를 register) | base |
 | mod-ledger.js | 가계부 기록·분류·카드 반영(importCore) | base, card, (sync) |
 | mod-holiday.js | 공휴일·음력 계산 | base |
