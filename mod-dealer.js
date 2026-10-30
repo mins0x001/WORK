@@ -1,6 +1,6 @@
 /* mod-dealer.js — 대리점 · 거리 데이터와 경로 계산
    업무허브 · 업무일지 · 가계부가 함께 쓰는 독립 모듈. 공개 API만 M.dealer로 내보냄.
-   MODULE dealer V1.18 (2026-10-29) */
+   MODULE dealer V1.19 (2026-10-30) */
 (function(M){
 /* ================= 대리점 · 거리 데이터 =================
    여기 데이터만 수정하면 됩니다 (대리점명 / 코드 / 전화번호 / 주소)
@@ -35,11 +35,11 @@ const ROWS = [
   {"name": "협신", "codes": ["0968"], "phone": "031-563-6377", "tier": 1, "dist": null, "address": "구리시 안골로 18"},
   {"name": "경동", "codes": ["3512"], "phone": "02-2244-8879", "tier": 2, "dist": null, "address": "서울특별시 동대문구 전농로4길 62"},
   {"name": "나로", "codes": ["4343", "C155"], "phone": "02-2249-8894", "tier": 2, "dist": null, "address": "동대문구 천호대로77길 17"},
-  {"name": "남용", "codes": ["4494", "C300"], "phone": "02-433-2435", "tier": 2, "dist": null, "address": ""},
+  {"name": "남용", "codes": ["4494", "C300"], "phone": "02-433-2435", "tier": 2, "dist": null, "address": "경기도 의정부시 동일로 672"},
   {"name": "대진", "codes": ["2286", "A493"], "phone": "02-454-8814", "tier": 2, "dist": 36.7, "address": "서울 광진구 뚝섬로 647"},
   {"name": "대창", "codes": ["A776"], "phone": "02-2249-9334", "tier": 2, "dist": null, "address": "서울특별시 동대문구 전농로4길 62"},
   {"name": "대한", "codes": ["0110"], "phone": "02-2244-5414", "tier": 2, "dist": null, "address": "동대문구 고미술로 99"},
-  {"name": "대현오토", "codes": ["2094", "B220"], "phone": "02-2248-0034", "tier": 2, "dist": null, "address": ""},
+  {"name": "대현", "codes": ["2094", "B220"], "phone": "02-2248-0034", "tier": 2, "dist": null, "address": "서울특별시 동대문구 장한로 182"},
   {"name": "대흥K", "codes": ["1328"], "phone": "02-928-7788", "tier": 2, "dist": null, "address": "서울 동대문구 고산자로60길 9"},
   {"name": "방학", "codes": ["3040"], "phone": "02-955-9050", "tier": 2, "dist": null, "address": "동대문구 고산자로60길 9"},
   {"name": "도림", "codes": ["A617"], "phone": "02-2215-8328", "tier": 2, "dist": null, "address": "서울 동대문구 전농로4길 62 라동"},
@@ -49,7 +49,7 @@ const ROWS = [
   {"name": "동일", "codes": ["4515"], "phone": "02-2212-0101", "tier": 2, "dist": null, "address": "서울 동대문구 황물로15가길 7"},
   {"name": "명성", "codes": ["1459"], "phone": "02-2245-5557", "tier": 2, "dist": null, "address": "동대문구 한천로 31 부품상가 다동"},
   {"name": "문화", "codes": ["1613"], "phone": "02-434-3666", "tier": 2, "dist": null, "address": "중랑구 송림길 4"},
-  {"name": "밧데리", "codes": ["3639"], "phone": "02-3409-2037", "tier": 2, "dist": null, "address": ""},
+  {"name": "밧데리", "codes": ["3639"], "phone": "02-3409-2037", "tier": 2, "dist": null, "address": "서울특별시 성동구 연무장3길 8-3"},
   {"name": "보성", "codes": ["1230"], "phone": "02-2244-2378", "tier": 2, "dist": null, "address": "서울 동대문구 한천로 31 다동"},
   {"name": "부흥", "codes": ["1722"], "phone": "02-2214-4000", "tier": 2, "dist": null, "address": "동대문구 한천로 164 1층"},
   {"name": "북악", "codes": ["3480", "G035"], "phone": "02-916-2338", "tier": 2, "dist": null, "address": "성북구 정릉로 238"},

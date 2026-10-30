@@ -1,6 +1,6 @@
 /* mod-stats.js — 업무일지 기록 모델 · 근무 기간 · 집계 (순수 계산)
    업무허브 · 업무일지 · 가계부가 함께 쓰는 독립 모듈. 공개 API만 M.stats로 내보냄.
-   MODULE stats V1.18 (2026-10-29) */
+   MODULE stats V1.19 (2026-10-30) */
 (function(M){
 const {$,CARD_CATS,addDays,keyOf}=M.base;
 const {holNames}=M.holiday;
@@ -16,7 +16,7 @@ const SHIFT={
 const NUMF=['odo','fuel','toll','urea'];
 const ROUNDS=['1','2','3'];
 const MAX_STOPS=40;
-const RENAMED={'충남(의정부)':'충남','의충남':'충남','충남(장안)':'장충남','C동우':'동우'};      // 이름이 바뀐 대리점: 예전 이름으로 저장된 회전 기록·검색어를 새 이름으로
+const RENAMED={'충남(의정부)':'충남','의충남':'충남','충남(장안)':'장충남','C동우':'동우','대현오토':'대현'};      // 이름이 바뀐 대리점: 예전 이름으로 저장된 회전 기록·검색어를 새 이름으로
 
 function normRounds(src){
   if(!src||typeof src!=='object') return null;
