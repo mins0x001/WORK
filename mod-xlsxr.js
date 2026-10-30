@@ -1,6 +1,6 @@
 /* mod-xlsxr.js — 엑셀(.xlsx) 읽기 (외부 라이브러리 없이 ZIP·XML 해석)
    업무허브 · 업무일지 · 가계부가 함께 쓰는 독립 모듈. 공개 API만 M.xlsxr로 내보냄.
-   MODULE xlsxr V1.19 (2026-10-30) */
+   MODULE xlsxr V1.20 (2026-10-30) */
 (function(M){
 /* ---- .xlsx 읽기 (외부 라이브러리 없이: ZIP 목차 → 압축 풀기 → XML) ---- */
 async function readZip(buf){

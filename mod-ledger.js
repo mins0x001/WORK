@@ -1,6 +1,6 @@
 /* mod-ledger.js — 가계부 기록 · 분류 · 고정지출 · 카드 반영(importCore)
    업무허브 · 업무일지 · 가계부가 함께 쓰는 독립 모듈. 공개 API만 M.ledger로 내보냄.
-   MODULE ledger V1.19 (2026-10-30) */
+   MODULE ledger V1.20 (2026-10-30) */
 (function(M){
 const {$,CARD_CATS,bus,ls,metaOf,pad,rj,toast}=M.base;
 const {BIKE_MAX,LPG_RE,STATION_RE,classifyCard,isBigFuel,netCardTx,normM}=M.card;

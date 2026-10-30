@@ -1,6 +1,6 @@
 /* mod-fare.js — 운송비 명세서 읽기(엑셀·CSV·붙여넣기·OCR 글자) · 검산 · 평균·추세 분석
    업무허브 · 업무일지 · 가계부가 함께 쓰는 독립 모듈. 공개 API만 M.fare로 내보냄.
-   MODULE fare V1.19 (2026-10-30) */
+   MODULE fare V1.20 (2026-10-30) */
 (function(M){
 const {$,bus,ls,metaOf,rj}=M.base;
 const {xlsxRows}=M.xlsxr;

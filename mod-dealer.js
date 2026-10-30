@@ -1,6 +1,6 @@
 /* mod-dealer.js — 대리점 · 거리 데이터와 경로 계산
    업무허브 · 업무일지 · 가계부가 함께 쓰는 독립 모듈. 공개 API만 M.dealer로 내보냄.
-   MODULE dealer V1.19 (2026-10-30) */
+   MODULE dealer V1.20 (2026-10-30) */
 (function(M){
 /* ================= 대리점 · 거리 데이터 =================
    여기 데이터만 수정하면 됩니다 (대리점명 / 코드 / 전화번호 / 주소)
@@ -35,7 +35,7 @@ const ROWS = [
   {"name": "협신", "codes": ["0968"], "phone": "031-563-6377", "tier": 1, "dist": null, "address": "구리시 안골로 18"},
   {"name": "경동", "codes": ["3512"], "phone": "02-2244-8879", "tier": 2, "dist": null, "address": "서울특별시 동대문구 전농로4길 62"},
   {"name": "나로", "codes": ["4343", "C155"], "phone": "02-2249-8894", "tier": 2, "dist": null, "address": "동대문구 천호대로77길 17"},
-  {"name": "남용", "codes": ["4494", "C300"], "phone": "02-433-2435", "tier": 2, "dist": null, "address": "경기도 의정부시 동일로 672"},
+  {"name": "남용", "codes": ["4494", "C300"], "phone": "02-433-2435", "tier": 1, "dist": null, "address": "경기도 의정부시 동일로 672"},
   {"name": "대진", "codes": ["2286", "A493"], "phone": "02-454-8814", "tier": 2, "dist": 36.7, "address": "서울 광진구 뚝섬로 647"},
   {"name": "대창", "codes": ["A776"], "phone": "02-2249-9334", "tier": 2, "dist": null, "address": "서울특별시 동대문구 전농로4길 62"},
   {"name": "대한", "codes": ["0110"], "phone": "02-2244-5414", "tier": 2, "dist": null, "address": "동대문구 고미술로 99"},
@@ -75,7 +75,7 @@ const ROWS = [
   {"name": "제삼", "codes": ["4383", "A466"], "phone": "02-2248-4956", "tier": 2, "dist": null, "address": "서울 동대문구 한천로 17"},
   {"name": "제일", "codes": ["A214"], "phone": "02-999-8585", "tier": 2, "dist": null, "address": "도봉구 도봉로 644-45"},
   {"name": "제일(장안)", "codes": ["0021"], "phone": "02-2242-3181", "tier": 2, "dist": null, "address": "서울 동대문구 황물로15나길 20"},
-  {"name": "준흥", "codes": ["4236"], "phone": "02-2299-1297", "tier": 2, "dist": null, "address": "경기도 남양주시 석실로 716-3"},
+  {"name": "준흥", "codes": ["4236"], "phone": "02-2299-1297", "tier": 1, "dist": null, "address": "경기도 남양주시 석실로 716-3"},
   {"name": "장충남", "codes": ["3550", "A954"], "phone": "02-2249-0577", "tier": 2, "dist": null, "address": "서울 동대문구 전농로4길 62 라동"},
   {"name": "태양", "codes": ["0113"], "phone": "02-923-1549", "tier": 2, "dist": null, "address": "서울 동대문구 청계천로 491"},
   {"name": "터보", "codes": ["4008", "B222"], "phone": "02-2246-5522", "tier": 2, "dist": null, "address": "동대문구 한천로 17 자동차부품상가"},
