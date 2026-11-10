@@ -1,6 +1,6 @@
 /* mod-holiday.js — 공휴일 · 음력 계산 (한국 공휴일 엔진)
    업무허브 · 업무일지 · 가계부가 함께 쓰는 독립 모듈. 공개 API만 M.holiday로 내보냄.
-   MODULE holiday V1.23 (2026-11-05) */
+   MODULE holiday V1.24 (2026-11-10) */
 (function(M){
 const {addDays,keyOf,parseKey}=M.base;
 /* ================= 공휴일 엔진 =================

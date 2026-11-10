@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0A1120">
-<meta name="release-date" content="2026-11-05">
+<meta name="release-date" content="2026-11-10">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="운송비">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>운송비 V1.23 (2026-11-05)</title>
+<title>운송비 V1.24 (2026-11-10)</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
@@ -236,13 +236,13 @@ details.raw summary{cursor:pointer;font-size:12px;color:var(--faint);padding:6px
 <input type="file" id="rsFile" accept=".json,application/json" hidden>
 <div class="toast" id="toast"></div>
 
-<script src="mod-base.js?v=1.23-2026-11-05"></script>
-<script src="mod-sync.js?v=1.23-2026-11-05"></script>
-<script src="mod-xlsxr.js?v=1.23-2026-11-05"></script>
-<script src="mod-fare.js?v=1.23-2026-11-05"></script>
-<script src="mod-holiday.js?v=1.23-2026-11-05"></script>
-<script src="mod-dealer.js?v=1.23-2026-11-05"></script>
-<script src="mod-stats.js?v=1.23-2026-11-05"></script>
+<script src="mod-base.js?v=1.24-2026-11-10"></script>
+<script src="mod-sync.js?v=1.24-2026-11-10"></script>
+<script src="mod-xlsxr.js?v=1.24-2026-11-10"></script>
+<script src="mod-fare.js?v=1.24-2026-11-10"></script>
+<script src="mod-holiday.js?v=1.24-2026-11-10"></script>
+<script src="mod-dealer.js?v=1.24-2026-11-10"></script>
+<script src="mod-stats.js?v=1.24-2026-11-10"></script>
 <script>
 const {$,bus,escH,fmt,keyOf,metaOf,pad,rj,toast}=M.base;
 const sync=M.sync;
@@ -250,6 +250,7 @@ const {xlsxRows}=M.xlsxr;
 const {F,FARE_KEY,FARE_KIND_NAME,FARE_META,fareAll,fareAnalyze,fareCheck,fareDel,fareDerive,fareKind,fareLink,fareParse,farePut,fareReadFile,fareReplace,fareSaveSettings,fareSettings,frHas,frNum}=M.fare;
 const {normalize,statsFor}=M.stats;
 /* ================= 버전 정보 (하드코딩) =================
+   V1.24 (2026-11-10): 상신 → 의기아 거리 12km 추가
    V1.23 (2026-11-05): 대맥 ↔ 새론 거리 양방향 20km
    V1.22 (2026-11-05): 새론 → 대맥 거리 20km 추가
    V1.21 (2026-11-05): 우리 ↔ 사업소 거리 21km → 22km
@@ -260,8 +261,8 @@ const {normalize,statsFor}=M.stats;
    V1.16 (2026-10-29): 운송비 명세서 앱 추가(fare.html): 엑셀·CSV·붙여넣기 자동 인식·검산·적정 운임·평균·추세·업무일지 대조, 허브 타일, mod-xlsxr 분리
    구조: 읽기·검산·분석은 독립 모듈(mod-fare.js), 엑셀 읽기는 mod-xlsxr.js, 이 파일은 화면만 담당 */
 const APP_NAME    = '운송비';
-const APP_VERSION = '1.23';
-const BUILD_DATE  = '2026-11-05';
+const APP_VERSION = '1.24';
+const BUILD_DATE  = '2026-11-10';
 sync.configure({version:APP_VERSION});
 fareLink(sync);
 

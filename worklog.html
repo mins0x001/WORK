@@ -4,14 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0A1120">
-<meta name="release-date" content="2026-11-05">
+<meta name="release-date" content="2026-11-10">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="업무일지">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>업무일지 V1.23 (2026-11-05)</title>
+<title>업무일지 V1.24 (2026-11-10)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
@@ -648,12 +648,12 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 
 <div class="toast" id="toast"></div>
 
-<script src="mod-base.js?v=1.23-2026-11-05"></script>
-<script src="mod-sync.js?v=1.23-2026-11-05"></script>
-<script src="mod-holiday.js?v=1.23-2026-11-05"></script>
-<script src="mod-dealer.js?v=1.23-2026-11-05"></script>
-<script src="mod-stats.js?v=1.23-2026-11-05"></script>
-<script src="mod-export.js?v=1.23-2026-11-05"></script>
+<script src="mod-base.js?v=1.24-2026-11-10"></script>
+<script src="mod-sync.js?v=1.24-2026-11-10"></script>
+<script src="mod-holiday.js?v=1.24-2026-11-10"></script>
+<script src="mod-dealer.js?v=1.24-2026-11-10"></script>
+<script src="mod-stats.js?v=1.24-2026-11-10"></script>
+<script src="mod-export.js?v=1.24-2026-11-10"></script>
 <script>
 const {$,CARD_CATS,WD,addDays,bus,escH,keyOf,metaOf,pad,parseKey}=M.base;
 const sync=M.sync;
@@ -662,6 +662,7 @@ const {BYNAME,DISTANCE_EDGES,ROWS,TIER_COUNTS,TIER_LABELS,getDistance,kmShort,km
 const {MAX_STOPS,RENAMED,ROUNDS,SHIFT,dayRouteKmIn,normalize,odoFor,periodOf,rangeOf,roundTextIn,roundsIn,statsFor}=M.stats;
 const {buildWorkbookFor,csvRowsFor}=M.export;
 /* ================= 버전 정보 (하드코딩) =================
+   V1.24 (2026-11-10): 상신 → 의기아 거리 12km 추가
    V1.23 (2026-11-05): 대맥 ↔ 새론 거리 양방향 20km
    V1.22 (2026-11-05): 새론 → 대맥 거리 20km 추가
    V1.21 (2026-11-05): 우리 ↔ 사업소 거리 21km → 22km
@@ -688,8 +689,8 @@ const {buildWorkbookFor,csvRowsFor}=M.export;
    V1.00 (2026-10-26): 버전 새로 시작 — 업무일지 — 대리점 조회·회전 저장, 근무 달력, 연간 집계, 동기화
    구조: 공통 코드는 독립 모듈(mod-*.js)로 분리, 이 파일은 화면만 담당 */
 const APP_NAME    = '업무일지';
-const APP_VERSION = '1.23';
-const BUILD_DATE  = '2026-11-05';
+const APP_VERSION = '1.24';
+const BUILD_DATE  = '2026-11-10';
 
 /* ================= 데이터 모델 =================
    data["YYYY-MM-DD"] = { s:'1'|'2'|'3'|'off', odo:km, fuel:원, toll:원, urea:원, hol:'사용자 휴일 이름',
