@@ -1,6 +1,6 @@
 /* mod-export.js — 업무일지 엑셀·CSV 내용 만들기
    업무허브 · 업무일지 · 가계부가 함께 쓰는 독립 모듈. 공개 API만 M.export로 내보냄.
-   MODULE export V1.25 (2026-11-10) */
+   MODULE export V1.26 (2026-11-10) */
 (function(M){
 const {$,CARD_CATS,WD,XL,keyOf,pad,parseKey}=M.base;
 const {holNames}=M.holiday;
